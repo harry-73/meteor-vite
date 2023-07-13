@@ -1,5 +1,16 @@
-# meteor-vite
+<p align="center">
+  <a href="https://vitejs.dev" target="_blank" rel="noopener noreferrer">
+    <img src="https://i.gyazo.com/c272b33b21e476af4f76fcb8390411e8.png" alt="Vite logo">
+  </a>
+</p>
 
+<p align="center">
+  <a href="https://npmjs.com/package/meteor-vite"><img src="https://img.shields.io/npm/v/meteor-vite.svg" alt="npm package"></a>
+  <a href="https://github.com/JorgenVatle/meteor-vite/actions/workflows/test.yml"><img src="https://github.com/JorgenVatle/meteor-vite/actions/workflows/test.yml/badge.svg?branch=release" alt="build status"></a>
+  <a href="https://github.com/JorgenVatle/meteor-vite/actions/workflows/build-example.yml"><img src="https://github.com/JorgenVatle/meteor-vite/actions/workflows/build-example.yml/badge.svg?branch=release" alt="build status"></a>
+</p>
+
+# meteor-vite
 Use [Vite](https://vitejs.dev) in your Meteor app! ⚡️
 
 ## Roadmap
@@ -16,7 +27,7 @@ Use [Vite](https://vitejs.dev) in your Meteor app! ⚡️
 - [x] Code-splitting/Dynamic imports
 - [ ] SSR (not tested)
 - [ ] Starter/demo templates
-  - [x] [Vue 3](/examples/vue) 
+  - [x] [Vue 3](/examples/vue)
     - [Live demo](https://vite-and-vue3.meteorapp.com/)
   - [x] [Svelte](/examples/svelte)
   - [ ] React
@@ -106,10 +117,10 @@ You can then write your code from this entry point and it will be handled by Vit
 Meteor-Vite will automatically detect lazy loaded Meteor packages and import them into your Meteor client's entrypoint.
 This is necessary to ensure that the Vite bundler has access to your Meteor packages.
 
-The imported files can safely be committed to your project repository. If you remove the associated package in the 
+The imported files can safely be committed to your project repository. If you remove the associated package in the
 future, simply remove the import statement.
 
-Our detection for these packages is fairly primitive, so it's best to keep the imports in the Meteor client 
+Our detection for these packages is fairly primitive, so it's best to keep the imports in the Meteor client
 entrypoint as specified in the `meteor.mainModule.client` field of your `package.json` file.
 ```json5
 {
@@ -123,12 +134,12 @@ entrypoint as specified in the `meteor.mainModule.client` field of your `package
 ```
 
 ### Stub validation
-Runtime validation at the client is performed for Meteor packages that are compiled by Vite. This is done to avoid a 
-situation where Meteor-Vite incorrectly exports undefined values from a Meteor Package. Which can lead to silently 
+Runtime validation at the client is performed for Meteor packages that are compiled by Vite. This is done to avoid a
+situation where Meteor-Vite incorrectly exports undefined values from a Meteor Package. Which can lead to silently
 broken Meteor packages.
 
 The validation is done simply through verifying that package exports do not have a `typeof` value of `undefined`.
-If you do have a package that intentionally has `undefined` exports, you can disable the warning message for this 
+If you do have a package that intentionally has `undefined` exports, you can disable the warning message for this
 package by excluding it in your Meteor settings.json file;
 ```ts
 // vite.config.ts
