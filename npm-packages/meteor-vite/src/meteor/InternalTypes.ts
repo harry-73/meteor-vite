@@ -35,5 +35,5 @@ export interface MeteorClientProgram {
     version: string;
     cordovaCompatibilityVersions?: any;
     PUBLIC_SETTINGS: any;
-    meteorRuntimeConfig: MeteorRuntimeConfig;
+    meteorRuntimeConfig: string; // JSON parses to > MeteorRuntimeConfig
 }
