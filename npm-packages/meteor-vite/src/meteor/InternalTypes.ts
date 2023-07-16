@@ -2,6 +2,7 @@ export type MeteorProgram = {
     type: 'web-program-pre1'
     manifest: MeteorManifest[]
 }
+
 export type MeteorManifest = {
     path: string;
     where: 'client' | 'internal' | string;
@@ -26,4 +27,13 @@ export type MeteorRuntimeConfig = {
     ROOT_URL_PATH_PREFIX: string;
     meteorRelease: string;
     PUBLIC_SETTINGS: { [key: string]: unknown }
+}
+
+export interface MeteorClientProgram {
+    format: string;
+    manifest: any;
+    version: string;
+    cordovaCompatibilityVersions?: any;
+    PUBLIC_SETTINGS: any;
+    meteorRuntimeConfig: MeteorRuntimeConfig;
 }
