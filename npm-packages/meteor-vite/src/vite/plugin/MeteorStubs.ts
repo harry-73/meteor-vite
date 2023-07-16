@@ -3,6 +3,7 @@ import Path from 'path';
 import pc from 'picocolors';
 import { Plugin } from 'vite';
 import PackageJSON from '../../../package.json';
+import { MeteorManifest, MeteorProgram, MeteorRuntimeConfig } from '../../meteor/InternalTypes';
 import MeteorPackage from '../../meteor/package/components/MeteorPackage';
 import { stubTemplate } from '../../meteor/package/StubTemplate';
 import { createErrorHandler } from '../error/ErrorHandler';
@@ -136,6 +137,12 @@ export interface PluginSettings {
          * @example {@link /examples/vue/.meteor/local/isopacks/}
          */
         isopackPath: string;
+        
+        /**
+         * Meteor's client-side runtime config.
+         * Used for enabling SSR with Vite.
+         */
+        runtimeConfig: MeteorRuntimeConfig;
     }
     
     /**

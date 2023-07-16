@@ -1,6 +1,7 @@
 import Path from 'path';
 import { createServer, resolveConfig, ViteDevServer } from 'vite';
 import Logger from '../../Logger';
+import { MeteorRuntimeConfig } from '../../meteor/InternalTypes';
 import MeteorEvents, { MeteorIPCMessage } from '../../meteor/MeteorEvents';
 import { MeteorViteConfig } from '../../vite/MeteorViteConfig';
 import { MeteorStubs } from '../../vite';
@@ -33,7 +34,10 @@ export default CreateIPCInterface({
     },
     
     // todo: Add reply for triggering a server restart
-    async 'vite.startDevServer'(replyInterface: Replies, { packageJson }: { packageJson: ProjectJson }) {
+    async 'vite.startDevServer'(replyInterface: Replies, { packageJson, meteorRuntimeConfig: runtimeConfig }: {
+        packageJson: ProjectJson,
+        meteorRuntimeConfig: MeteorRuntimeConfig;
+    }) {
         
         viteConfig = await resolveConfig({
             configFile: packageJson?.meteor?.viteConfig,
@@ -47,6 +51,7 @@ export default CreateIPCInterface({
                         meteor: {
                             packagePath: Path.join('.meteor', 'local', 'build', 'programs', 'web.browser', 'packages'),
                             isopackPath: Path.join('.meteor', 'local', 'isopacks'),
+                            runtimeConfig,
                         },
                         packageJson,
                         stubValidation: viteConfig.meteor?.stubValidation,
