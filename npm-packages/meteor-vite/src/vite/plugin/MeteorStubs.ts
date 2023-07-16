@@ -1,7 +1,7 @@
 import FS from 'fs/promises';
 import Path from 'path';
 import pc from 'picocolors';
-import { Plugin } from 'vite';
+import { HtmlTagDescriptor, Plugin } from 'vite';
 import PackageJSON from '../../../package.json';
 import { MeteorManifest, MeteorProgram, MeteorRuntimeConfig } from '../../meteor/InternalTypes';
 import MeteorPackage from '../../meteor/package/components/MeteorPackage';
@@ -24,6 +24,36 @@ export const MeteorStubs = setupPlugin(async (pluginSettings: PluginSettings) =>
         shouldProcess: (viteId) => ViteLoadRequest.isStubRequest(viteId),
         async setupContext(viteId) {
             return ViteLoadRequest.prepareContext({ id: viteId, pluginSettings });
+        },
+        
+        /**
+         * When acting as the frontend server in place of Meteor, inject Meteor's package import scripts into the
+         * server-rendered page.
+         */
+        async transformIndexHtml() {
+            const path = Path.join(pluginSettings.meteor.packagePath, '../program.json');
+            const program: MeteorProgram = JSON.parse(await FS.readFile(path, 'utf-8'));
+            const imports: HtmlTagDescriptor[] = [];
+            
+            const assetUrl = (manifest: MeteorManifest) => {
+                const base = pluginSettings.meteor.runtimeConfig.ROOT_URL.replace(/^\/*/, '');
+                const path = manifest.url.replace(/^\/*/, '');
+                return `${base}/${path}`;
+            }
+            const initData = encodeURIComponent(JSON.stringify(pluginSettings.meteor.runtimeConfig));
+            
+            imports.push({ tag: 'script', children: `__meteor_runtime_config__ = JSON.parse(decodeURIComponent('${initData}'));` })
+            
+            program.manifest.forEach((asset) => {
+                if (asset.type === 'css') {
+                    imports.push({ tag: 'link', attrs: { href: assetUrl(asset), rel: 'stylesheet' } })
+                }
+                if (asset.type === 'js') {
+                    imports.push({ tag: 'script', attrs: { type: 'text/javascript', src: assetUrl(asset) } })
+                }
+            })
+            
+            return imports;
         },
         
         async load(request) {
@@ -90,12 +120,13 @@ function setupPlugin<Context extends ViteLoadRequest, Settings>(setup: (settings
     setupContext(viteId: string): Promise<Context>;
     shouldProcess(viteId: string): boolean;
     resolveId(viteId: string): string | undefined;
-}>): (settings: Settings) => Promise<Plugin> {
+} & Pick<Plugin, 'transformIndexHtml'>>): (settings: Settings) => Promise<Plugin> {
     const createPlugin = async (settings: Settings): Promise<Plugin> => {
         const plugin = await setup(settings);
         return {
             name: plugin.name,
             resolveId: plugin.resolveId,
+            transformIndexHtml: plugin.transformIndexHtml,
             
             async load(viteId: string) {
                 const shouldProcess = plugin.shouldProcess(viteId);
