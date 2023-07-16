@@ -33,23 +33,22 @@ export const MeteorStubs = setupPlugin(async (pluginSettings: PluginSettings) =>
         async transformIndexHtml() {
             const path = Path.join(pluginSettings.meteor.packagePath, '../program.json');
             const program: MeteorProgram = JSON.parse(await FS.readFile(path, 'utf-8'));
-            const imports: HtmlTagDescriptor[] = [];
+            let imports: HtmlTagDescriptor[] = [];
             
             const assetUrl = (manifest: MeteorManifest) => {
                 const base = pluginSettings.meteor.runtimeConfig.ROOT_URL.replace(/^\/*/, '');
                 const path = manifest.url.replace(/^\/*/, '');
-                return `${base}/${path}`;
+                return `${base}${path}`;
             }
-            const initData = encodeURIComponent(JSON.stringify(pluginSettings.meteor.runtimeConfig));
             
-            imports.push({ tag: 'script', children: `__meteor_runtime_config__ = JSON.parse(decodeURIComponent('${initData}'));` })
+            imports.push({ tag: 'script', attrs: { type: 'text/javascript', src: 'http://localhost:3000/__meteor_runtime_config.js' } })
             
             program.manifest.forEach((asset) => {
                 if (asset.type === 'css') {
-                    imports.push({ tag: 'link', attrs: { href: assetUrl(asset), rel: 'stylesheet' } })
+                    imports.push({ tag: 'link', injectTo: 'head', attrs: { href: assetUrl(asset), rel: 'stylesheet' } })
                 }
                 if (asset.type === 'js') {
-                    imports.push({ tag: 'script', attrs: { type: 'text/javascript', src: assetUrl(asset) } })
+                    imports.push({ tag: 'script', injectTo: 'body', attrs: { type: 'text/javascript', src: assetUrl(asset) } })
                 }
             })
             
