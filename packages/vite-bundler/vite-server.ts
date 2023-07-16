@@ -24,6 +24,16 @@ if (Meteor.isDevelopment) {
         }
     });
     
+    WebApp.connectHandlers.use('/__meteor_runtime_config.js', (req, res, next) => {
+        res.setHeader('Content-Type', 'application/javascript')
+        res.writeHead(200);
+        
+        const meteorRuntimeConfig: MeteorRuntimeConfig = JSON.parse(WebApp.clientPrograms['web.browser'].meteorRuntimeConfig);
+        const config = Object.assign({}, { DDP_DEFAULT_CONNECTION_URL: meteorRuntimeConfig.ROOT_URL }, meteorRuntimeConfig);
+        
+        res.end(`__meteor_runtime_config__ = JSON.parse(decodeURIComponent(${WebApp.encodeRuntimeConfig(config)}));`);
+    })
+    
     const viteServer = createWorkerFork({
         viteConfig(config) {
             const { ready } = setConfig(config);
