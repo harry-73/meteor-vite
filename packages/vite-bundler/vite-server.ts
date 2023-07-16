@@ -1,6 +1,7 @@
 import { Meteor } from 'meteor/meteor'
-import { WebAppInternals } from 'meteor/webapp'
+import { WebAppInternals, WebApp } from 'meteor/webapp'
 import type HTTP from 'http'
+import { MeteorClientProgram, MeteorRuntimeConfig } from '../../npm-packages/meteor-vite/src/meteor/InternalTypes';
 import {
     getConfig, DevConnectionLog,
     MeteorViteConfig,
@@ -34,11 +35,14 @@ if (Meteor.isDevelopment) {
             DevConnectionLog.info('Some lazy-loaded packages were imported, please refresh')
         }
     });
+    const clientProgram = WebApp.clientPrograms['web.browser'] as MeteorClientProgram;
+    const meteorRuntimeConfig: MeteorRuntimeConfig = JSON.parse(clientProgram.meteorRuntimeConfig)
     
     viteServer.call({
         method: 'vite.startDevServer',
         params: [{
             packageJson: getProjectPackageJson(),
+            meteorRuntimeConfig,
         }]
     });
     
