@@ -1,14 +1,14 @@
 import FS from 'fs/promises';
 import Path from 'path';
 import pc from 'picocolors';
-import { HtmlTagDescriptor, Plugin } from 'vite';
+import { Plugin } from 'vite';
 import PackageJSON from '../../../package.json';
-import { MeteorManifest, MeteorProgram, MeteorRuntimeConfig } from '../../meteor/InternalTypes';
+import { MeteorRuntimeConfig } from '../../meteor/InternalTypes';
 import MeteorPackage from '../../meteor/package/components/MeteorPackage';
 import { stubTemplate } from '../../meteor/package/StubTemplate';
 import { createErrorHandler } from '../error/ErrorHandler';
 import { MeteorViteError } from '../error/MeteorViteError';
-import { MeteorViteConfig, StubValidationSettings } from '../MeteorViteConfig';
+import { MeteorViteConfig } from '../MeteorViteConfig';
 import ViteLoadRequest from '../ViteLoadRequest';
 
 export const MeteorStubs = setupPlugin(async (pluginSettings: PluginSettings) => {
@@ -29,35 +29,6 @@ export const MeteorStubs = setupPlugin(async (pluginSettings: PluginSettings) =>
         },
         configResolved(config) {
             resolvedConfig = config;
-        },
-        
-        /**
-         * When acting as the frontend server in place of Meteor, inject Meteor's package import scripts into the
-         * server-rendered page.
-         */
-        async transformIndexHtml() {
-            const path = Path.join(pluginSettings.meteor.packagePath, '../program.json');
-            const program: MeteorProgram = JSON.parse(await FS.readFile(path, 'utf-8'));
-            let imports: HtmlTagDescriptor[] = [];
-            
-            const assetUrl = (manifest: MeteorManifest) => {
-                const base = pluginSettings.meteor.runtimeConfig.ROOT_URL.replace(/^\/*/, '');
-                const path = manifest.url.replace(/^\/*/, '');
-                return `${base}${path}`;
-            }
-            
-            imports.push({ tag: 'script', attrs: { type: 'text/javascript', src: 'http://localhost:3000/__meteor_runtime_config.js' } })
-            
-            program.manifest.forEach((asset) => {
-                if (asset.type === 'css') {
-                    imports.push({ tag: 'link', injectTo: 'head', attrs: { href: assetUrl(asset), rel: 'stylesheet' } })
-                }
-                if (asset.type === 'js') {
-                    imports.push({ tag: 'script', injectTo: 'head', attrs: { type: 'text/javascript', src: assetUrl(asset) } })
-                }
-            })
-            
-            return imports;
         },
         
         async load(request) {
