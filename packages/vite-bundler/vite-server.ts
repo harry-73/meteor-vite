@@ -8,7 +8,7 @@ import {
     getConfig, DevConnectionLog,
     MeteorViteConfig,
     setConfig,
-    ViteConnection,
+    ViteConnection, buildConnectionUri,
 } from './loading/vite-connection-handler';
 import { createWorkerFork, getProjectPackageJson, isMeteorIPCMessage, onTeardown, workerDir } from './workers';
 let pid: string;
@@ -75,11 +75,17 @@ if (Meteor.isDevelopment) {
 }
 
 function createViteServer() {
+    let emittedReadyState = false;
     const viteServer = createWorkerFork({
         viteConfig(config) {
-            const { ready } = setConfig(config);
-            if (ready) {
-                DevConnectionLog.info(`Meteor-Vite ready for connections!`)
+            const newConfig = setConfig(config);
+            if (newConfig.ready && !emittedReadyState) {
+                emittedReadyState = true;
+                DevConnectionLog.info(
+                    `[Meteor-Vite] Vite is ready for connections!\n      %s\n      %s`,
+                    `Meteor Server:\t${Meteor.absoluteUrl('/')}\t(App URL)`,
+                    `Vite Server:\t${buildConnectionUri(newConfig)}\t(Client bundles)`,
+                );
             }
         },
         refreshNeeded() {

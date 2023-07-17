@@ -52,3 +52,7 @@ export const DevConnectionLog = {
         ...params,
     ),
 };
+
+export function buildConnectionUri(config: RuntimeConfig) {
+    return `http://${config.host || 'localhost'}:${config.port}/`;
+}

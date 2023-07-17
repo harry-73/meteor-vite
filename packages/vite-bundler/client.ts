@@ -3,7 +3,13 @@
 
 import { Meteor } from 'meteor/meteor';
 import { Tracker } from 'meteor/tracker';
-import { getConfig, DevConnectionLog, RuntimeConfig, ViteConnection } from './loading/vite-connection-handler';
+import {
+    buildConnectionUri,
+    DevConnectionLog,
+    getConfig,
+    RuntimeConfig,
+    ViteConnection,
+} from './loading/vite-connection-handler';
 
 let subscription: Meteor.SubscriptionHandle;
 let initialConfig: RuntimeConfig;
@@ -114,6 +120,3 @@ declare global {
     }
 }
 
-function buildConnectionUri(config: RuntimeConfig) {
-    return `http://${config.host || 'localhost'}:${config.port}/`
-}
