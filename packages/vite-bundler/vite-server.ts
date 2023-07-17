@@ -81,10 +81,16 @@ function createViteServer() {
             const newConfig = setConfig(config);
             if (newConfig.ready && !emittedReadyState) {
                 emittedReadyState = true;
+                const dataLine = `      %s:\t%s\t\x1b[2m(%s)\x1b[22m`
+                const serverTypes = newConfig.mode === 'ssr'
+                                    ? { meteor: 'DDP Server', vite: 'App Server' }
+                                    : { meteor: 'App Server', vite: 'HMR' };
+                
                 DevConnectionLog.info(
-                    `[Meteor-Vite] Vite is ready for connections!\n      %s\n      %s`,
-                    `Meteor Server:\t${Meteor.absoluteUrl('/')}\t(App URL)`,
-                    `Vite Server:\t${buildConnectionUri(newConfig)}\t(Client bundles)`,
+                    `[Meteor-Vite] %s\n${dataLine}\n${dataLine}`,
+                    `Vite is ready for connections!`,
+                    'Meteor Server', Meteor.absoluteUrl('/'), serverTypes.meteor,
+                    'Vite Server', buildConnectionUri(newConfig), serverTypes.vite,
                 );
             }
         },

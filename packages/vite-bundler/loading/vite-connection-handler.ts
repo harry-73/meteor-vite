@@ -10,6 +10,7 @@ const runtimeConfig: RuntimeConfig = {
     host: 'localhost',
     port: 0,
     entryFile: '',
+    mode: 'hmr',
     lastUpdate: Date.now(),
 }
 
