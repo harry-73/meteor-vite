@@ -100,7 +100,13 @@ function createViteServer() {
 
 function createMeteorViteBundleWatcher() {
     const packageBuilder = createWorkerFork({});
-    let restartTimeout: ReturnType<typeof setTimeout>
+    let restartTimeout: ReturnType<typeof setTimeout>;
+    let lastRestart = Date.now();
+    packageBuilder.call({
+        method: 'tsup.watchMeteorVite',
+        params: [],
+    });
+    
     const recreateViteServer = Meteor.bindEnvironment(function(event: FS.WatchEventType) {
         if (!pid) {
             pid = (Math.random() * 1000).toFixed(2)
@@ -110,19 +116,20 @@ function createMeteorViteBundleWatcher() {
         console.log('Restarting worker...');
         viteServer.child.kill();
         viteServer = createViteServer();
-    })
+    });
+    
     const watcher = FS.watch(Path.join(workerDir, 'dist'), (event) => {
         clearTimeout(restartTimeout);
+        if (Date.now() - lastRestart < 5_000) {
+            return console.log('Server just started. Skipping restart to avoid immediate restart');
+        }
         restartTimeout = setTimeout(() => recreateViteServer(event), 1000);
     });
+    
     onTeardown(() => {
         watcher.close();
         console.log('Removed meteor-vite bundle watcher');
     })
-    packageBuilder.call({
-        method: 'tsup.watchMeteorVite',
-        params: [],
-    });
 }
 
 interface BoilerplateData {
