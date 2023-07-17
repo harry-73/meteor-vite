@@ -150,7 +150,7 @@ function teardownAll() {
 export function getTempDir() {
     const packageJson = getProjectPackageJson();
     try {
-        const tempDir = Path.resolve(packageJson?.meteor?.tempDir || os.tmpdir(), 'meteor-vite', packageJson.name);
+        const tempDir = Path.resolve(packageJson?.meteor?.tempDir || OS.tmpdir(), 'meteor-vite', packageJson.name);
         FS.mkdirSync(tempDir, { recursive: true });
         return tempDir;
     } catch (error) {
