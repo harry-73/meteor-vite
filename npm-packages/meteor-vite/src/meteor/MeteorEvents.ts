@@ -1,6 +1,7 @@
 import { EventEmitter } from 'events';
 import pc from 'picocolors';
 import Logger from '../Logger';
+import { MeteorRuntimeConfig } from './InternalTypes';
 
 type MeteorIPCTopic = 'webapp-reload-client' | 'webapp-pause-client' | 'client-refresh';
 
@@ -46,8 +47,19 @@ export default new class MeteorEvents {
         Logger.debug('Received Meteor IPC message:', message);
         this.events.emit(message.topic);
     }
+    
+    public setRuntimeConfig(config: MeteorRuntimeConfig) {
+        this.events.emit('updated-runtime-config', config);
+    }
+    
+    public listen<Event extends keyof EventMap>(event: Event, listener: (data: EventMap[Event]) => void) {
+        this.events.on(event, listener);
+    }
 }
 
+type EventMap = {
+    'updated-runtime-config': MeteorRuntimeConfig;
+}
 
 function awaitEvent<
     Emitter extends EventEmitter,
