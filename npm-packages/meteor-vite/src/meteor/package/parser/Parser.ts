@@ -41,6 +41,7 @@ export async function parseMeteorPackage({ fileContent, filePath }: ParseOptions
     const content = (fileContent || FS.readFile(filePath, 'utf-8'))
     
     const result: ParsedPackage = await parseSource(await content);
+    result.sourcePath = filePath;
     
     if (!result.name) {
         throw new ParserError(`Could not extract name from package in: ${filePath}`, {
@@ -79,6 +80,7 @@ function parseSource(code: string) {
             packageScopeExports: {},
             mainModulePath: '',
             packageId: '',
+            sourcePath: '',
         }
         
         traverse(source, {
@@ -498,4 +500,9 @@ export interface ParsedPackage {
      * E.g. `meteor/ostrio:cookies`, `meteor/meteor`, `meteor/vite:bundler`
      */
     packageId: string;
+    
+    /**
+     * Path to the source file that was parsed.
+     */
+    sourcePath: string;
 }
