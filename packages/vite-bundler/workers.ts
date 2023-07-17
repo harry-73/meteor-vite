@@ -50,7 +50,6 @@ export function createWorkerFork(hooks: Partial<WorkerResponseHooks>) {
         console.log('Gracefully shut down worker process');
     });
     
-    
     return {
         call(method: Omit<WorkerMethod, 'replies'>) {
             child.send(method);
@@ -59,22 +58,13 @@ export function createWorkerFork(hooks: Partial<WorkerResponseHooks>) {
     }
 }
 
-['exit', 'SIGINT', 'SIGHUP', 'SIGTERM'].forEach(event => {
-    process.once(event, () => {
-        teardownHandlers.forEach((handler, index) => {
-            if (completedHandlers.includes(index)) return;
-            handler();
-            completedHandlers.push(index);
-        });
-    })
-});
-export function onTeardown(handler: TeardownHandler) {
-    teardownHandlers.push(handler);
-}
 const completedHandlers: number[] = [];
 const teardownHandlers: TeardownHandler[] = [];
 type TeardownHandler = () => void;
 
+export function onTeardown(handler: TeardownHandler) {
+    teardownHandlers.push(handler);
+}
 
 export function isMeteorIPCMessage<
     Topic extends MeteorIPCMessage['topic']
@@ -129,3 +119,20 @@ function guessCwd () {
     }
     return cwd
 }
+
+function teardownAll() {
+    teardownHandlers.forEach((handler, index) => {
+        if (completedHandlers.includes(index)) return;
+        handler();
+        completedHandlers.push(index);
+    });
+}
+
+Meteor.startup(() => {
+    ['exit', 'SIGINT', 'SIGHUP', 'SIGTERM'].forEach(event => {
+        process.once(event, teardownAll);
+    });
+    onTeardown(() => {
+        process.removeAllListeners();
+    })
+})

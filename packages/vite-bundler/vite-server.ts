@@ -114,7 +114,10 @@ function createMeteorViteBundleWatcher() {
         
         console.log(`pid: ${pid} Filesystem event from worker: ${event}`);
         console.log('Restarting worker...');
-        viteServer.child.kill();
+        viteServer.call({
+            method: 'ipc.teardown',
+            params: [],
+        })
         viteServer = createViteServer();
     });
     
