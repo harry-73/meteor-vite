@@ -27,6 +27,7 @@ export type MeteorRuntimeConfig = {
     ROOT_URL_PATH_PREFIX: string;
     meteorRelease: string;
     PUBLIC_SETTINGS: { [key: string]: unknown }
+    DDP_DEFAULT_CONNECTION_URL?: string;
 }
 
 export interface MeteorClientProgram {
