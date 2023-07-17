@@ -3,9 +3,8 @@ import PageShell from './PageShell.vue'
 import { setPageContext } from './usePageContext'
 import type { Component, PageContext, PageProps } from './Types'
 
-export { createApp }
 
-function createApp(Page: Component, pageProps: PageProps | undefined, pageContext: PageContext) {
+export function createApp(Page: Component, pageProps: PageProps | undefined, pageContext: PageContext) {
     const PageWithLayout = defineComponent({
         render() {
             return h(
