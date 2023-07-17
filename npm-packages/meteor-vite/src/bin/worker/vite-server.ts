@@ -8,8 +8,10 @@ import { MeteorStubs } from '../../vite';
 import { ProjectJson } from '../../vite/plugin/MeteorStubs';
 import { RefreshNeeded } from '../../vite/ViteLoadRequest';
 import CreateIPCInterface, { IPCReply } from './IPC/interface';
+import { onTeardown } from './IPC/teardown';
 
 let server: ViteDevServer & { config: MeteorViteConfig };
+let serverClosing = false;
 let viteConfig: MeteorViteConfig;
 
 type Replies = IPCReply<{
@@ -79,6 +81,14 @@ export default CreateIPCInterface({
             })
         }
         
+        onTeardown((event) => {
+            Logger.warn(`Received kill signal ${event} - Closing Vite server...`)
+            
+            server.close().then(() => {
+                Logger.warn('Vite server closed successfully');
+                process.exit(0);
+            });
+        });
         
         let listening = false
         await server.listen()
