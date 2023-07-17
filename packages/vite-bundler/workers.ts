@@ -128,11 +128,9 @@ function teardownAll() {
     });
 }
 
-Meteor.startup(() => {
-    ['exit', 'SIGINT', 'SIGHUP', 'SIGTERM'].forEach(event => {
-        process.once(event, teardownAll);
-    });
-    onTeardown(() => {
-        process.removeAllListeners();
-    })
+['exit', 'SIGINT', 'SIGHUP', 'SIGTERM'].forEach(event => {
+    process.once(event, teardownAll);
+});
+onTeardown(() => {
+    process.removeAllListeners();
 })
