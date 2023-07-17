@@ -2,7 +2,11 @@
   "name": "vue3-ssr",
   "private": true,
   "scripts": {
-    "start": "meteor run"
+    "start": "meteor run",
+    "build": "meteor build ../output/vue --directory",
+    "meteor-vite-internal:setup-env": "cross-env-shell METEOR_PACKAGE_DIRS=\"../../packages/\" BUILD_METEOR_VITE_DEPENDENCY='true'",
+    "meteor-vite-internal:start": "npm run meteor-vite-internal:setup-env meteor npm start",
+    "meteor-vite-internal:build": "npm run meteor-vite-internal:setup-env meteor npm build"
   },
   "dependencies": {
     "@babel/runtime": "^7.17.9",
