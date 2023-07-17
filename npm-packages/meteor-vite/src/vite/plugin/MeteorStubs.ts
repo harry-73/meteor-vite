@@ -160,10 +160,18 @@ export interface PluginSettings {
  * todo: expand types
  */
 export type ProjectJson = {
+    name: string;
     meteor: {
         mainModule: {
             client: string;
         },
         viteConfig?: string;
+        
+        /**
+         * Override temporary file storage path for Meteor-Vite.
+         * Should be an absolute path.
+         * Defaults to `${os.tmpdir()/${ProjectJson.name}/meteor-vite`
+         */
+        tempDir?: string;
     }
 }
