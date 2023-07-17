@@ -48,7 +48,7 @@ export const MeteorStubs = setupPlugin(async (pluginSettings: PluginSettings) =>
                     imports.push({ tag: 'link', injectTo: 'head', attrs: { href: assetUrl(asset), rel: 'stylesheet' } })
                 }
                 if (asset.type === 'js') {
-                    imports.push({ tag: 'script', injectTo: 'body', attrs: { type: 'text/javascript', src: assetUrl(asset) } })
+                    imports.push({ tag: 'script', injectTo: 'head', attrs: { type: 'text/javascript', src: assetUrl(asset) } })
                 }
             })
             
