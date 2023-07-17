@@ -8,6 +8,12 @@
     "meteor-vite-internal:start": "npm run meteor-vite-internal:setup-env meteor npm start",
     "meteor-vite-internal:build": "npm run meteor-vite-internal:setup-env meteor npm build"
   },
+  "meteor": {
+    "mainModule": {
+      "client": "client/main.ts",
+      "server": "server/main.ts"
+    }
+  },
   "dependencies": {
     "@babel/runtime": "^7.17.9",
     "meteor-node-stubs": "^1.2.1"
