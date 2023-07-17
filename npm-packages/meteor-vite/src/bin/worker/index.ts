@@ -3,11 +3,13 @@ import { MeteorViteConfig } from '../../vite/MeteorViteConfig';
 import PackageBuild from './package-build';
 import ProductionBuilder from './production-build';
 import ViteServerWorker from './vite-server';
+import IPCTeardown from './IPC/teardown';
 
 const IpcMethods = {
     ...ViteServerWorker,
     ...ProductionBuilder,
     ...PackageBuild,
+    ...IPCTeardown,
 } as const;
 
 process.on('message', async (message: WorkerMethod) => {
