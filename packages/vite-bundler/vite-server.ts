@@ -17,8 +17,6 @@ const meteorRuntimeConfig: MeteorRuntimeConfig = JSON.parse(clientProgram.meteor
 let viteServer: ReturnType<typeof createWorkerFork>;
 
 if (Meteor.isDevelopment) {
-    DevConnectionLog.info('Starting Vite server...');
-    
     WebAppInternals.registerBoilerplateDataCallback('meteor-vite', (request: HTTP.IncomingMessage, data: BoilerplateData) => {
         const { host, port, entryFile, ready } = getConfig();
         if (ready) {
@@ -75,6 +73,7 @@ if (Meteor.isDevelopment) {
 }
 
 function createViteServer() {
+    DevConnectionLog.info('Starting Vite server...');
     let emittedReadyState = false;
     const viteServer = createWorkerFork({
         viteConfig(config) {
