@@ -5,7 +5,7 @@ import { MeteorRuntimeConfig } from '../../meteor/InternalTypes';
 import MeteorEvents, { MeteorIPCMessage } from '../../meteor/MeteorEvents';
 import { MeteorViteConfig, MeteorViteMode } from '../../vite/MeteorViteConfig';
 import { MeteorStubs } from '../../vite';
-import { ProjectJson } from '../../vite/plugin/MeteorStubs';
+import { PluginSettings, ProjectJson } from '../../vite/plugin/MeteorStubs';
 import { RefreshNeeded } from '../../vite/ViteLoadRequest';
 import CreateIPCInterface, { IPCReply } from './IPC/interface';
 import { onTeardown } from './IPC/teardown';
@@ -41,15 +41,17 @@ export default CreateIPCInterface({
         meteorRuntimeConfig: MeteorRuntimeConfig;
     }) {
         
+        const meteor = {
+            packagePath: Path.join('.meteor', 'local', 'build', 'programs', 'web.browser', 'packages'),
+            isopackPath: Path.join('.meteor', 'local', 'isopacks'),
+            runtimeConfig,
+        } satisfies PluginSettings['meteor'];
+        
         if (!server) {
             server = await createServer({
                 plugins: [
                     MeteorStubs({
-                        meteor: {
-                            packagePath: Path.join('.meteor', 'local', 'build', 'programs', 'web.browser', 'packages'),
-                            isopackPath: Path.join('.meteor', 'local', 'isopacks'),
-                            runtimeConfig,
-                        },
+                        meteor,
                         packageJson,
                     }),
                     {
