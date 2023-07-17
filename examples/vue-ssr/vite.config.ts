@@ -14,5 +14,6 @@ export default defineConfig({
     
     meteor: {
         clientEntry: 'imports/ui/main.ts',
-    },
+        viteMode: 'ssr',
+    } satisfies MeteorViteConfig['meteor'],
 })
