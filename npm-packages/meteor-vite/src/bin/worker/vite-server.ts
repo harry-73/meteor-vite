@@ -39,6 +39,7 @@ export default CreateIPCInterface({
         meteorRuntimeConfig: MeteorRuntimeConfig;
     }) {
         
+        // todo: use in-plugin hook for retrieving the config
         viteConfig = await resolveConfig({
             configFile: packageJson?.meteor?.viteConfig,
         }, 'serve');
