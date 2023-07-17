@@ -31,6 +31,10 @@
     },
 
     /* Vite setup */
-    "isolatedModules": true
+    "isolatedModules": true,
+
+    /* Meteo & zodern:types compatibility */
+    "preserveSymlinks": true,
+    "allowSyntheticDefaultImports": true
   },
 }
