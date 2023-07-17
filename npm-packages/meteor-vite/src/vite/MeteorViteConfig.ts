@@ -16,8 +16,29 @@ export declare interface MeteorViteConfig extends ResolvedConfig {
          * stub validation is disabled.
          */
         stubValidation?: StubValidationSettings;
+        
+        /**
+         * Use Vite as a Server-Side-Renderer (experimental) or as a bundler and Hot-Module-Replacement server
+         * {@link MeteorViteMode}
+         * @default hmr
+         */
+        viteMode?: MeteorViteMode;
     };
 }
+
+/**
+ * Specifies how you want to use Vite with Meteor.
+ *
+ * hmr = Vite is used for bundling your client assets for production and as a HMR server in development
+ *
+ * ssr = Vite is used as a replacement for Meteor's webapp. This assumes you have Vite configured to handle
+ * server-side rendering. In this mode, Meteor is only used as a DDP server and for serving its package bundles.
+ *
+ * @default hmr
+ */
+export type MeteorViteMode =
+    | 'hmr' // Using Vite for blazing fast Hot Module Replacement (Users should connect to the Meteor URL)
+    | 'ssr' // Using Vite as a Server-Side Renderer (Users should access their app from the Vite connection URL)
 
 export interface StubValidationSettings {
     /**
