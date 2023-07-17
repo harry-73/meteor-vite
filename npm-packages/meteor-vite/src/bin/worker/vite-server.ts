@@ -1,3 +1,4 @@
+import OS from 'os';
 import Path from 'path';
 import { createServer, resolveConfig, ViteDevServer } from 'vite';
 import Logger from '../../Logger';
@@ -63,6 +64,7 @@ export default CreateIPCInterface({
                         },
                     },
                 ],
+                cacheDir: packageJson?.meteor?.tempDir || Path.resolve(OS.tmpdir(), 'meteor-vite', packageJson.name, '.vite-server'),
             });
             
             process.on('warning', (warning) => {
