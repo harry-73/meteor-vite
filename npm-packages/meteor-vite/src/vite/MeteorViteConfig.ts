@@ -23,6 +23,13 @@ export declare interface MeteorViteConfig extends ResolvedConfig {
          * @default hmr
          */
         viteMode?: MeteorViteMode;
+        
+        /**
+         * Enabling debug mode will write all input and output files to a `.meteor-vite` directory.
+         * Handy for quickly assessing how things are being formatted, or for writing up new test sources.
+         * Intended for meteor-vite developers.
+         */
+        debug?: boolean;
     };
 }
 

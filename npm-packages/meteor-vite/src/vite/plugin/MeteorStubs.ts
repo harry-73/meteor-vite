@@ -55,7 +55,7 @@ export const MeteorStubs = setupPlugin(async (pluginSettings: PluginSettings) =>
                 'Request duration': `${Date.now() - timeStarted}ms`,
             });
             
-            if (pluginSettings.debug) {
+            if (resolvedConfig.meteor?.debug) {
                 await storeDebugSnippet({ request, stubTemplate: template })
             }
             
@@ -152,12 +152,6 @@ export interface PluginSettings {
      * Like the one found in {@link /examples/vue/package.json}
      */
     packageJson: ProjectJson;
-    
-    /**
-     * Enabling debug mode will write all input and output files to a `.meteor-vite` directory.
-     * Handy for quickly assessing how things are being formatted, or for writing up new test sources.
-     */
-    debug?: boolean;
     
 }
 
