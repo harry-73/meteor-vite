@@ -28,6 +28,8 @@ type Replies = IPCReply<{
     data: {},
 }>
 
+const runtimeConfig = {} as MeteorRuntimeConfig;
+
 export default CreateIPCInterface({
     async 'vite.getDevServerConfig'(replyInterface: Replies) {
         sendViteConfig(replyInterface);
@@ -37,12 +39,17 @@ export default CreateIPCInterface({
         MeteorEvents.ingest(data);
     },
     
-    // todo: Add reply for triggering a server restart
-    async 'vite.startDevServer'(replyInterface: Replies, { packageJson, meteorRuntimeConfig: runtimeConfig }: {
+    async 'meteor.setRuntimeConfig'(reply, data: MeteorRuntimeConfig) {
+        MeteorEvents.setRuntimeConfig(data);
+        Object.assign(runtimeConfig, data);
+    },
+    
+    async 'vite.startDevServer'(replyInterface: Replies, { packageJson, meteorRuntimeConfig }: {
         packageJson: ProjectJson,
         meteorRuntimeConfig: MeteorRuntimeConfig;
     }) {
         
+        Object.assign(runtimeConfig, meteorRuntimeConfig);
         const meteor = {
             packagePath: Path.join('.meteor', 'local', 'build', 'programs', 'web.browser', 'packages'),
             isopackPath: Path.join('.meteor', 'local', 'isopacks'),
