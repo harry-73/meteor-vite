@@ -13,7 +13,7 @@ export default defineConfig({
     ],
     
     meteor: {
-        clientEntry: 'imports/ui/main.ts',
+        clientEntry: 'imports/ui/ssr-render/App.ts',
         viteMode: 'ssr',
     } satisfies MeteorViteConfig['meteor'],
 })
