@@ -45,11 +45,11 @@ export function createWorkerFork(hooks: Partial<WorkerResponseHooks>) {
         return hook(message.data);
     });
     
-    ['exit', 'SIGINT', 'SIGHUP', 'SIGTERM'].forEach(event => {
-        process.once(event, () => {
-            child.kill()
-        })
+    onTeardown(() => {
+        child.kill();
+        console.log('Gracefully shut down worker process');
     });
+    
     
     return {
         call(method: Omit<WorkerMethod, 'replies'>) {
@@ -58,6 +58,23 @@ export function createWorkerFork(hooks: Partial<WorkerResponseHooks>) {
         child,
     }
 }
+
+['exit', 'SIGINT', 'SIGHUP', 'SIGTERM'].forEach(event => {
+    process.once(event, () => {
+        teardownHandlers.forEach((handler, index) => {
+            if (completedHandlers.includes(index)) return;
+            handler();
+            completedHandlers.push(index);
+        });
+    })
+});
+export function onTeardown(handler: TeardownHandler) {
+    teardownHandlers.push(handler);
+}
+const completedHandlers: number[] = [];
+const teardownHandlers: TeardownHandler[] = [];
+type TeardownHandler = () => void;
+
 
 export function isMeteorIPCMessage<
     Topic extends MeteorIPCMessage['topic']
@@ -88,7 +105,8 @@ class MeteorViteError extends Error {
 }
 
 export const cwd = process.env.METEOR_VITE_CWD ?? guessCwd();
-export const workerPath = Path.join(cwd, 'node_modules/meteor-vite/dist/bin/worker/index.mjs');
+export const workerDir = Path.join(cwd, 'node_modules/meteor-vite')
+export const workerPath = Path.join(workerDir, 'dist/bin/worker/index.mjs');
 export function getProjectPackageJson(): ProjectJson {
     const path = Path.join(cwd, 'package.json');
     
