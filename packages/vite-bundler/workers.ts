@@ -1,4 +1,4 @@
-import { fork } from 'node:child_process'
+import { fork, ChildProcess } from 'node:child_process'
 import { Meteor } from 'meteor/meteor';
 import Path from 'path';
 import FS from 'fs';
@@ -28,6 +28,8 @@ export function createWorkerFork(hooks: Partial<WorkerResponseHooks>) {
         },
     });
     
+    registerTeardownHandler(child);
+    
     const hookMethods = Object.keys(hooks) as (keyof typeof hooks)[];
     hookMethods.forEach((method) => {
         const hook = hooks[method];
@@ -45,10 +47,7 @@ export function createWorkerFork(hooks: Partial<WorkerResponseHooks>) {
         return hook(message.data);
     });
     
-    onTeardown(() => {
-        child.kill();
-        console.log('Gracefully shut down worker process');
-    });
+    
     
     return {
         call(method: Omit<WorkerMethod, 'replies'>) {
@@ -58,6 +57,25 @@ export function createWorkerFork(hooks: Partial<WorkerResponseHooks>) {
     }
 }
 
+function registerTeardownHandler(child: ChildProcess) {
+    if (!teardownHandlerRegistered) {
+        teardownHandlerRegistered = true;
+        ['exit', 'SIGINT', 'SIGHUP', 'SIGTERM'].forEach(event => {
+            let listener = () => {
+                child.kill();
+                teardownAll();
+                process.removeListener(event, listener);
+            }
+            process.once(event, listener);
+        });
+    } else  {
+        onTeardown(() => {
+            child.kill();
+        });
+    }
+}
+
+let teardownHandlerRegistered = false;
 const completedHandlers: number[] = [];
 const teardownHandlers: TeardownHandler[] = [];
 type TeardownHandler = () => void;
@@ -127,10 +145,3 @@ function teardownAll() {
         completedHandlers.push(index);
     });
 }
-
-['exit', 'SIGINT', 'SIGHUP', 'SIGTERM'].forEach(event => {
-    process.once(event, teardownAll);
-});
-onTeardown(() => {
-    process.removeAllListeners();
-})
