@@ -3,7 +3,7 @@ import { createServer, resolveConfig, ViteDevServer } from 'vite';
 import Logger from '../../Logger';
 import { MeteorRuntimeConfig } from '../../meteor/InternalTypes';
 import MeteorEvents, { MeteorIPCMessage } from '../../meteor/MeteorEvents';
-import { MeteorViteConfig } from '../../vite/MeteorViteConfig';
+import { MeteorViteConfig, MeteorViteMode } from '../../vite/MeteorViteConfig';
 import { MeteorStubs } from '../../vite';
 import { ProjectJson } from '../../vite/plugin/MeteorStubs';
 import { RefreshNeeded } from '../../vite/ViteLoadRequest';
@@ -20,9 +20,7 @@ type Replies = IPCReply<{
         host?: string | boolean;
         port?: number;
         entryFile?: string;
-        mode:
-            | 'hmr' // Using Vite for blazing fast Hot Module Replacement (Users should connect to the Meteor URL)
-            | 'ssr' // Using Vite as a Server-Side Renderer (Users should access their app from the Vite connection URL)
+        mode: MeteorViteMode;
     }
 } | {
     kind: 'refreshNeeded',
@@ -114,7 +112,7 @@ function sendViteConfig(reply: Replies) {
             host: config.server?.host,
             port: config.server?.port,
             entryFile: config.meteor?.clientEntry,
-            mode: 'hmr',
+            mode: config.meteor?.viteMode || 'hmr',
         }
     })
 }
