@@ -11,7 +11,6 @@ import CreateIPCInterface, { IPCReply } from './IPC/interface';
 import { onTeardown } from './IPC/teardown';
 
 let server: ViteDevServer & { config: MeteorViteConfig };
-let serverClosing = false;
 let viteConfig: MeteorViteConfig;
 
 type Replies = IPCReply<{
