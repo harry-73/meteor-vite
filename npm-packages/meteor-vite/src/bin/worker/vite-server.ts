@@ -50,6 +50,7 @@ export default CreateIPCInterface({
         
         if (!server) {
             server = await createServer({
+                configFile: packageJson.meteor?.viteConfig,
                 plugins: [
                     MeteorStubs({ meteor, packageJson }),
                     InjectMeteorPrograms({ meteor }),
