@@ -30,6 +30,11 @@ type Replies = IPCReply<{
 
 const runtimeConfig = {} as MeteorRuntimeConfig;
 
+function setRuntimeConfig(config: MeteorRuntimeConfig) {
+    Object.assign(runtimeConfig, { DDP_DEFAULT_CONNECTION_URL: config.DDP_DEFAULT_CONNECTION_URL ?? config.ROOT_URL }, config);
+    MeteorEvents.setRuntimeConfig(config);
+}
+
 export default CreateIPCInterface({
     async 'vite.getDevServerConfig'(replyInterface: Replies) {
         sendViteConfig(replyInterface);
@@ -40,8 +45,7 @@ export default CreateIPCInterface({
     },
     
     async 'meteor.setRuntimeConfig'(reply, data: MeteorRuntimeConfig) {
-        MeteorEvents.setRuntimeConfig(data);
-        Object.assign(runtimeConfig, data);
+        setRuntimeConfig(data);
     },
     
     async 'vite.startDevServer'(replyInterface: Replies, { packageJson, meteorRuntimeConfig }: {
@@ -49,7 +53,8 @@ export default CreateIPCInterface({
         meteorRuntimeConfig: MeteorRuntimeConfig;
     }) {
         
-        Object.assign(runtimeConfig, meteorRuntimeConfig);
+        setRuntimeConfig(meteorRuntimeConfig);
+        
         const meteor = {
             packagePath: Path.join('.meteor', 'local', 'build', 'programs', 'web.browser', 'packages'),
             isopackPath: Path.join('.meteor', 'local', 'isopacks'),
