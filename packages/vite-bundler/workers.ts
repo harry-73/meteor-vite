@@ -1,5 +1,6 @@
 import { fork, ChildProcess } from 'node:child_process'
 import { Meteor } from 'meteor/meteor';
+import OS from 'os';
 import Path from 'path';
 import FS from 'fs';
 import pc from 'picocolors';
@@ -144,4 +145,16 @@ function teardownAll() {
         handler();
         completedHandlers.push(index);
     });
+}
+
+export function getTempDir() {
+    const packageJson = getProjectPackageJson();
+    try {
+        const tempDir = Path.resolve(packageJson?.meteor?.tempDir || os.tmpdir(), 'meteor-vite', packageJson.name);
+        FS.mkdirSync(tempDir, { recursive: true });
+        return tempDir;
+    } catch (error) {
+        console.warn(new Error(`⚡  Unable to set up temp directory for meteor-vite bundles. Will use node_modules instead`, { cause: error }));
+        return Path.resolve(cwd, 'node_modules', '.vite-meteor-temp');
+    }
 }
