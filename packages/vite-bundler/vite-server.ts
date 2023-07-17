@@ -1,6 +1,8 @@
 import { Meteor } from 'meteor/meteor'
 import { WebAppInternals, WebApp } from 'meteor/webapp'
 import type HTTP from 'http'
+import FS from 'fs'
+import Path from 'path';
 import { MeteorClientProgram, MeteorRuntimeConfig } from '../../npm-packages/meteor-vite/src/meteor/InternalTypes';
 import {
     getConfig, DevConnectionLog,
@@ -8,7 +10,11 @@ import {
     setConfig,
     ViteConnection,
 } from './loading/vite-connection-handler';
-import { createWorkerFork, getProjectPackageJson, isMeteorIPCMessage } from './workers';
+import { createWorkerFork, getProjectPackageJson, isMeteorIPCMessage, onTeardown, workerDir } from './workers';
+let pid: string;
+const clientProgram = WebApp.clientPrograms['web.browser'] as MeteorClientProgram;
+const meteorRuntimeConfig: MeteorRuntimeConfig = JSON.parse(clientProgram.meteorRuntimeConfig);
+let viteServer: ReturnType<typeof createWorkerFork>;
 
 if (Meteor.isDevelopment) {
     DevConnectionLog.info('Starting Vite server...');
@@ -34,27 +40,7 @@ if (Meteor.isDevelopment) {
         res.end(`__meteor_runtime_config__ = JSON.parse(decodeURIComponent(${WebApp.encodeRuntimeConfig(config)}));`);
     })
     
-    const viteServer = createWorkerFork({
-        viteConfig(config) {
-            const { ready } = setConfig(config);
-            if (ready) {
-                DevConnectionLog.info(`Meteor-Vite ready for connections!`)
-            }
-        },
-        refreshNeeded() {
-            DevConnectionLog.info('Some lazy-loaded packages were imported, please refresh')
-        }
-    });
-    const clientProgram = WebApp.clientPrograms['web.browser'] as MeteorClientProgram;
-    const meteorRuntimeConfig: MeteorRuntimeConfig = JSON.parse(clientProgram.meteorRuntimeConfig)
-    
-    viteServer.call({
-        method: 'vite.startDevServer',
-        params: [{
-            packageJson: getProjectPackageJson(),
-            meteorRuntimeConfig,
-        }]
-    });
+    viteServer = createViteServer();
     
     process.on('message', (message) => {
         if (!isMeteorIPCMessage(message)) return;
@@ -84,12 +70,59 @@ if (Meteor.isDevelopment) {
      * Primarily to ease the testing process for the Vite plugin.
      */
     if (process.env.BUILD_METEOR_VITE_DEPENDENCY === 'true') {
-        const packageBuilder = createWorkerFork({});
-        packageBuilder.call({
-            method: 'tsup.watchMeteorVite',
-            params: [],
-        });
+        createMeteorViteBundleWatcher();
     }
+}
+
+function createViteServer() {
+    const viteServer = createWorkerFork({
+        viteConfig(config) {
+            const { ready } = setConfig(config);
+            if (ready) {
+                DevConnectionLog.info(`Meteor-Vite ready for connections!`)
+            }
+        },
+        refreshNeeded() {
+            DevConnectionLog.info('Some lazy-loaded packages were imported, please refresh')
+        }
+    });
+    
+    viteServer.call({
+        method: 'vite.startDevServer',
+        params: [{
+            packageJson: getProjectPackageJson(),
+            meteorRuntimeConfig,
+        }]
+    });
+    
+    return viteServer;
+}
+
+function createMeteorViteBundleWatcher() {
+    const packageBuilder = createWorkerFork({});
+    let restartTimeout: ReturnType<typeof setTimeout>
+    const recreateViteServer = Meteor.bindEnvironment(function(event: FS.WatchEventType) {
+        if (!pid) {
+            pid = (Math.random() * 1000).toFixed(2)
+        }
+        
+        console.log(`pid: ${pid} Filesystem event from worker: ${event}`);
+        console.log('Restarting worker...');
+        viteServer.child.kill();
+        viteServer = createViteServer();
+    })
+    const watcher = FS.watch(Path.join(workerDir, 'dist'), (event) => {
+        clearTimeout(restartTimeout);
+        restartTimeout = setTimeout(() => recreateViteServer(event), 1000);
+    });
+    onTeardown(() => {
+        watcher.close();
+        console.log('Removed meteor-vite bundle watcher');
+    })
+    packageBuilder.call({
+        method: 'tsup.watchMeteorVite',
+        params: [],
+    });
 }
 
 interface BoilerplateData {
