@@ -6,6 +6,7 @@
       </a>
       <Link href="/">Home</Link>
       <Link href="/about">About</Link>
+      <Link href="/meteor">Meteor</Link>
     </div>
     <div class="content"><slot /></div>
   </div>
