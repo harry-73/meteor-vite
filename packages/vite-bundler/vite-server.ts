@@ -3,7 +3,10 @@ import { WebAppInternals, WebApp } from 'meteor/webapp'
 import type HTTP from 'http'
 import FS from 'fs'
 import Path from 'path';
-import { MeteorClientProgram, MeteorRuntimeConfig } from '../../npm-packages/meteor-vite/src/meteor/InternalTypes';
+import {
+    MeteorManifest,
+    MeteorRuntimeConfig,
+} from '../../npm-packages/meteor-vite/src/meteor/InternalTypes';
 import {
     getConfig, DevConnectionLog,
     MeteorViteConfig,
@@ -12,8 +15,6 @@ import {
 } from './loading/vite-connection-handler';
 import { createWorkerFork, getProjectPackageJson, isMeteorIPCMessage, onTeardown, workerDir } from './workers';
 let pid: string;
-const clientProgram = WebApp.clientPrograms['web.browser'] as MeteorClientProgram;
-const meteorRuntimeConfig: MeteorRuntimeConfig = JSON.parse(clientProgram.meteorRuntimeConfig);
 let viteServer: ReturnType<typeof createWorkerFork>;
 
 if (Meteor.isDevelopment) {
@@ -38,7 +39,9 @@ if (Meteor.isDevelopment) {
         res.end(`__meteor_runtime_config__ = JSON.parse(decodeURIComponent(${WebApp.encodeRuntimeConfig(config)}));`);
     })
     
-    viteServer = createViteServer();
+    Meteor.startup(() => {
+        viteServer = createViteServer();
+    })
     
     process.on('message', (message) => {
         if (!isMeteorIPCMessage(message)) return;
@@ -102,16 +105,24 @@ function createViteServer() {
         method: 'vite.startDevServer',
         params: [{
             packageJson: getProjectPackageJson(),
-            meteorRuntimeConfig,
+            meteorRuntimeConfig: getRuntimeConfig('web.browser'),
         }]
     });
+    
+    WebApp.addUpdatedNotifyHook((data) => {
+        viteServer.call({
+            method: 'meteor.setRuntimeConfig',
+            params: [data.runtimeConfig],
+        })
+    })
     
     return viteServer;
 }
 
 function getRuntimeConfig(arc: 'web.browser'): MeteorRuntimeConfig {
     const program = WebApp.clientPrograms[arc] as typeof WebApp.clientPrograms[string] & { meteorRuntimeConfig: string };
-    return JSON.parse(program.meteorRuntimeConfig);
+    const config = JSON.parse(program.meteorRuntimeConfig);
+    return config;
 }
 
 function createMeteorViteBundleWatcher() {
