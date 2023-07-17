@@ -59,7 +59,6 @@ export default CreateIPCInterface({
             plugins: [
                 MeteorStubs({
                     meteor,
-                    stubValidation: viteConfig.meteor.stubValidation,
                     packageJson,
                 }),
             ],

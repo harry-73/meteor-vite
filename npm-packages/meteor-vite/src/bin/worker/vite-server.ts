@@ -41,14 +41,8 @@ export default CreateIPCInterface({
         meteorRuntimeConfig: MeteorRuntimeConfig;
     }) {
         
-        // todo: use in-plugin hook for retrieving the config
-        viteConfig = await resolveConfig({
-            configFile: packageJson?.meteor?.viteConfig,
-        }, 'serve');
-        
         if (!server) {
             server = await createServer({
-                configFile: viteConfig.configFile,
                 plugins: [
                     MeteorStubs({
                         meteor: {
@@ -57,7 +51,6 @@ export default CreateIPCInterface({
                             runtimeConfig,
                         },
                         packageJson,
-                        stubValidation: viteConfig.meteor?.stubValidation,
                     }),
                     {
                         name: 'meteor-handle-restart',
