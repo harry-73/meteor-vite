@@ -5,7 +5,7 @@
       Links
     </h3>
     <ul>
-      <li>< todo ></li>
+      <li>(todo)</li>
     </ul>
   </div>
 </template>
