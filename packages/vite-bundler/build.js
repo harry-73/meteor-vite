@@ -232,14 +232,3 @@ try {
 } catch (e) {
   throw e
 }
-
-function getTempDir() {
-  try {
-    const tempDir = path.resolve(pkg?.meteorVite?.tempDir || os.tmpdir(), 'meteor-vite', pkg.name);
-    fs.mkdirSync(tempDir, { recursive: true });
-    return tempDir;
-  } catch (error) {
-    console.warn(new Error(`⚡  Unable to set up temp directory for meteor-vite bundles. Will use node_modules instead`, { cause: error }));
-    return path.resolve(cwd, 'node_modules', '.vite-meteor-temp');
-  }
-}
