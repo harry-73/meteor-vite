@@ -5,6 +5,7 @@ import { MeteorRuntimeConfig } from '../../meteor/InternalTypes';
 import MeteorEvents, { MeteorIPCMessage } from '../../meteor/MeteorEvents';
 import { MeteorViteConfig, MeteorViteMode } from '../../vite/MeteorViteConfig';
 import { MeteorStubs } from '../../vite';
+import InjectMeteorPrograms from '../../vite/plugin/InjectMeteorPrograms';
 import { PluginSettings, ProjectJson } from '../../vite/plugin/MeteorStubs';
 import { RefreshNeeded } from '../../vite/ViteLoadRequest';
 import CreateIPCInterface, { IPCReply } from './IPC/interface';
@@ -50,10 +51,8 @@ export default CreateIPCInterface({
         if (!server) {
             server = await createServer({
                 plugins: [
-                    MeteorStubs({
-                        meteor,
-                        packageJson,
-                    }),
+                    MeteorStubs({ meteor, packageJson }),
+                    InjectMeteorPrograms({ meteor }),
                     {
                         name: 'meteor-handle-restart',
                         buildStart () {
