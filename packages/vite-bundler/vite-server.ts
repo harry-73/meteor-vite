@@ -160,5 +160,6 @@ interface BoilerplateData {
 declare module 'meteor/webapp' {
     module WebApp {
         function encodeRuntimeConfig(config: object): string;
+        function addUpdatedNotifyHook(hook: (config: { arc: string, manifest: MeteorManifest, runtimeConfig: MeteorRuntimeConfig }) => void): void;
     }
 }
