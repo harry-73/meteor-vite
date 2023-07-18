@@ -10,6 +10,7 @@ export METEOR_PACKAGE_DIRS="$PWD/packages"
 export BUILD_METEOR_VITE_DEPENDENCY="true"
 
 build() {
+    link
     cd "$APP_DIR" || exit 1
     meteor build "$BUILD_TARGET" --directory
 }
