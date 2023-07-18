@@ -12,7 +12,8 @@
     "mainModule": {
       "client": "client/main.ts",
       "server": "server/main.ts"
-    }
+    },
+    "viteConfig": ".vite.config.mts"
   },
   "dependencies": {
     "@babel/runtime": "^7.17.9",
