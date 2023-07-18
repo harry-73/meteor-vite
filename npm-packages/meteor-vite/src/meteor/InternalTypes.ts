@@ -28,19 +28,19 @@ export type MeteorRuntimeConfig = {
     meteorRelease: string;
     PUBLIC_SETTINGS: { [key: string]: unknown }
     DDP_DEFAULT_CONNECTION_URL?: string;
-    autoupdate: AutoUpdateRuntime;
+    autoupdate?: AutoUpdateRuntime;
 }
 
 type AutoUpdateRuntime = {
-    versions: {
-        'web.browser.legacy': {
+    versions?: {
+        'web.browser.legacy'?: {
             versionNonRefreshable: string;
             version: string;
             versionHmr: number;
             versionRefreshable: string;
             versionReplaceable: string
         };
-        'web.browser': {
+        'web.browser'?: {
             versionNonRefreshable: string;
             version: string;
             versionHmr: number;
