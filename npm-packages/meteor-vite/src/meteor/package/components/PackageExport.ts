@@ -24,7 +24,7 @@ export default class PackageExport {
     public serialize() {
         const string = `export const ${this.key} = ${PACKAGE_SCOPE_KEY}.${this.key};`
         if (this.key === 'global') {
-            return `if (typeof global === 'undefined') { ${string} }`
+            return `export { ${this.key} } // Already globally exported by Meteor`
         }
         return string;
     }
