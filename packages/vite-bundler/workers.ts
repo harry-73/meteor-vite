@@ -26,6 +26,7 @@ export function createWorkerFork(hooks: Partial<WorkerResponseHooks>) {
         detached: false,
         env: {
             FORCE_COLOR: '3',
+            ...process.env,
         },
     });
     
