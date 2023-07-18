@@ -24,7 +24,7 @@ import { ref } from 'vue';
 const message = ref('');
 const messages = ref([]);
 function send() {
-    Methods.send(message);
+    Methods.send(message.value);
 }
 Tracker.autorun(() => {
     const sub = Publications.all();
