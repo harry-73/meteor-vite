@@ -91,7 +91,7 @@ async function storeDebugSnippet({ request, stubTemplate }: {
  */
 function setupPlugin<Context extends ViteLoadRequest, Settings>(setup: (settings: Settings) => Promise<{
     name: string;
-    load(request: Context): Promise<string>;
+    load(request: Context, options?: { ssr?: boolean }): Promise<string>;
     setupContext(viteId: string): Promise<Context>;
     shouldProcess(viteId: string): boolean;
     resolveId(viteId: string): string | undefined;
@@ -99,14 +99,14 @@ function setupPlugin<Context extends ViteLoadRequest, Settings>(setup: (settings
     const createPlugin = async (settings: Settings): Promise<Plugin> => {
         const { load, shouldProcess, setupContext, ...plugin } = await setup(settings);
         return {
-            async load(viteId: string) {
+            async load(viteId: string, options) {
                 if (!shouldProcess(viteId)) {
                     return;
                 }
                 
                 const request = await setupContext(viteId);
                 
-                return load(request).catch(
+                return load(request, options).catch(
                     createErrorHandler('Could not parse Meteor package', request)
                 )
             },
