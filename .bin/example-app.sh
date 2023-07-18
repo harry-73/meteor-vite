@@ -16,8 +16,13 @@ install() {
 
 build() {
     (link)
+    (cleanOutput)
     cd "$APP_DIR" || exit 1
     meteor build "$BUILD_TARGET" --directory
+}
+
+cleanOutput() {
+  rm -rf "$BUILD_TARGET"
 }
 
 link() {
