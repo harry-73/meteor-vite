@@ -114,7 +114,7 @@ function stubValidationTemplate({ settings, requestId, exportKeys, packageId }: 
         requestId,
         packageName: packageId,
         exportKeys: exportKeys,
-        warnOnly: settings?.warnOnly,
+        warnOnly: settings?.warnOnly || true,
     }
     
     // language=js
