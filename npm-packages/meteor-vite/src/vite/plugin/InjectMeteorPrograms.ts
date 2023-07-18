@@ -55,12 +55,19 @@ export default async function InjectMeteorPrograms(pluginSettings:  Pick<PluginS
                 return;
             }
             const filePath = Path.join(process.cwd(), id);
-            const content = await FS.readFile(filePath, 'utf-8');
+            let content = await FS.readFile(filePath, 'utf-8');
             if (id.endsWith('global-imports.js')) {
-                const newContent = content.split(/[\r\n]/).map((line) => line.replace(/^(\w+) =/, 'globalThis.$1 =')).join('\n');
-                return newContent;
+                content = content.split(/[\r\n]/).map((line) => line.replace(/^(\w+) =/, 'globalThis.$1 =')).join('\n');
             }
-            return meteorContext(content);
+            content = meteorContext(content);
+            if (content.match(/document/) && resolvedConfig.meteor?.debug) {
+                const format = Path.parse(id);
+                const writeDir = '.meteor-vite/injected-programs';
+                const writePath = Path.join(writeDir, `${format.name}${format.ext}`);
+                await FS.mkdir(writeDir, { recursive: true });
+                await FS.writeFile(writePath, content);
+            }
+            return content;
         },
         
     } satisfies Plugin;
