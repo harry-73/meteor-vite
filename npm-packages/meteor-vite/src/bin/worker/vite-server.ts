@@ -77,9 +77,6 @@ export default CreateIPCInterface({
                     },
                 ],
                 cacheDir: packageJson?.meteor?.tempDir || Path.resolve(OS.tmpdir(), 'meteor-vite', packageJson.name, '.vite-server'),
-                define: {
-                    __meteor_runtime_config__: runtimeConfig,
-                },
             });
             
             process.on('warning', (warning) => {
