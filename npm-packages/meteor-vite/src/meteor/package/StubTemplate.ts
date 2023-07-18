@@ -34,6 +34,8 @@ export function stubTemplate({ requestId, meteorPackage, importPath, stubValidat
     return`
 // requestId: ${requestId}
 // packageId: ${packageId}
+// source path: ${meteorPackage.sourcePath}
+import 'virtual:meteor-bundle';
 
 ${stubValidation.importString}
 const ${TEMPLATE_GLOBAL_KEY} = typeof window !== 'undefined' ? window : global;
