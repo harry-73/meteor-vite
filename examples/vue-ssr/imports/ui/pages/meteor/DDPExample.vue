@@ -13,7 +13,10 @@
         <div style="font-size: 0.8rem; margin-bottom: 0.2rem; opacity: 0.5; font-weight: 600; letter-spacing: -0.05rem; text-align: right">{{ formatTimestamp(timestamp) }}</div>
         <div style="font-weight: 600; opacity: 0.8">- {{ message }}</div>
       </div>
-    <input type="text" v-model="message">
+    <div style="display: flex; gap: 1rem">
+      <input type="text" v-model="message" placeholder="Enter a message">
+      <button type="submit">Send</button>
+    </div>
   </form>
 </template>
 
