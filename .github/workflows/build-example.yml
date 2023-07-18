@@ -22,3 +22,9 @@ jobs:
     uses: ./.github/workflows/_reuse_.build.yml
     with:
       name: 'svelte'
+
+  vue-ssr:
+    name: 'Vue (SSR)'
+    uses: ./.github/workflows/_reuse_.build.yml
+    with:
+      name: 'vue-ssr'
