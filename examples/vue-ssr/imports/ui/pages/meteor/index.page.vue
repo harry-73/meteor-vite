@@ -4,12 +4,12 @@
     <h3>Pre-rendered content</h3>
     <ServerContent />
   </div>
-  
+
   <h3>Meteor DDP</h3>
-  <ClientContent />
+  <DDPExample />
 </template>
 
 <script lang="ts" setup>
-import ClientContent from '/imports/ui/pages/meteor/DDPExample.vue';
+import DDPExample from '/imports/ui/pages/meteor/DDPExample.vue';
 import ServerContent from '/imports/ui/pages/meteor/ServerContent.vue';
 </script>
