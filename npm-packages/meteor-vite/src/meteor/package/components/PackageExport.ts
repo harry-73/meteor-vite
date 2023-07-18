@@ -22,11 +22,10 @@ export default class PackageExport {
     }
     
     public serialize() {
-        const string = `export const ${this.key} = ${PACKAGE_SCOPE_KEY}.${this.key};`
         if (this.key === 'global') {
-            return `export { ${this.key} } // Already globally exported by Meteor`
+            return `const _global = ${PACKAGE_SCOPE_KEY}.${this.key};\nexport { _global as global };`;
         }
-        return string;
+        return `export const ${this.key} = ${PACKAGE_SCOPE_KEY}.${this.key};`;
     }
     
     public serializeImport() {
