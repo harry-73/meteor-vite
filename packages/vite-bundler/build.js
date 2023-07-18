@@ -3,7 +3,7 @@ import { performance } from 'node:perf_hooks'
 import fs from 'fs-extra'
 import { execaSync } from 'execa'
 import pc from 'picocolors'
-import { createWorkerFork, cwd, getProjectPackageJson } from './workers';
+import { createWorkerFork, cwd, getProjectPackageJson, getTempDir } from './workers';
 
 if (process.env.NODE_ENV !== 'production') return
 
