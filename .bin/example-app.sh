@@ -3,7 +3,7 @@
 action="$1" # e.g. link, build, start
 app="$2" # e.g. vue, svelte
 
-APP_DIR="./examples/$app"
+APP_DIR="$PWD/examples/$app"
 BUILD_TARGET="$PWD/examples/output/$app"
 NPM_LINK_TARGET="$PWD/npm-packages/meteor-vite"
 export METEOR_PACKAGE_DIRS="$PWD/packages"
