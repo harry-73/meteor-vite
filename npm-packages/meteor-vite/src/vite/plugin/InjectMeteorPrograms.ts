@@ -1,22 +1,18 @@
 import FS from 'fs/promises';
-import { MeteorProgram } from '../../meteor/InternalTypes';
+import Logger from '../../Logger';
+import { MeteorProgram, MeteorRuntimeConfig } from '../../meteor/InternalTypes';
+import MeteorEvents from '../../meteor/MeteorEvents';
 import { MeteorViteConfig } from '../MeteorViteConfig';
 import { PluginSettings } from './MeteorStubs';
 import { Plugin } from 'vite';
 import Path from 'path';
 
-
 export default async function InjectMeteorPrograms(pluginSettings:  Pick<PluginSettings, 'meteor'>) {
     let resolvedConfig: MeteorViteConfig;
+    const bundlePath = Path.join(pluginSettings.meteor.packagePath, '../');
+    const runtimeFile = Path.join(bundlePath, '__meteor_runtime_config.js');
+    const virtualImports = [`import '${runtimeFile}';`, ...await getProgramImports(Path.join(bundlePath, '/program.json'))];
     
-    const path = Path.join(pluginSettings.meteor.packagePath, '../program.json');
-    const program: MeteorProgram = JSON.parse(await FS.readFile(path, 'utf-8'));
-    const virtualImports: string[] = []
-    program.manifest.forEach((entry) => {
-        if (entry.type === 'js') {
-            virtualImports.push(`import '\0${Path.join(path, '../', entry.path).replace(/^\/+/, '')}';`)
-        }
-    })
     
     return {
         name: 'meteor-vite: inject Meteor Programs HTML',
@@ -34,6 +30,15 @@ export default async function InjectMeteorPrograms(pluginSettings:  Pick<PluginS
             if (id.startsWith('\0.meteor')) {
                 return id;
             }
+        },
+        
+        buildStart() {
+            this.addWatchFile(runtimeFile);
+            updateRuntime(runtimeFile, pluginSettings.meteor.runtimeConfig);
+            
+            MeteorEvents.listen('updated-runtime-config', (data) => {
+                updateRuntime(runtimeFile, data);
+            })
         },
         
         /**
@@ -90,4 +95,24 @@ export default async function InjectMeteorPrograms(pluginSettings:  Pick<PluginS
             return imports;
         },
     } satisfies Plugin;
+}
+
+async function getProgramImports(programJsonPath: string) {
+    const program: MeteorProgram = JSON.parse(await FS.readFile(programJsonPath, 'utf-8'));
+    const virtualImports: string[] = [];
+    
+    program.manifest.forEach((entry) => {
+        if (entry.type === 'js') {
+            virtualImports.push(`import '\0${Path.join(programJsonPath, '../', entry.path).replace(/^\/+/, '')}';`)
+        }
+    });
+    
+    return virtualImports;
+}
+
+async function updateRuntime(runtimeFilePath: string, config: MeteorRuntimeConfig) {
+    // language=js
+    const template = `globalThis.__meteor_runtime_config__ = ${JSON.stringify(config)}`;
+    Logger.info('Writing new Runtime config: %s', config?.autoupdate?.versions?.['web.browser']?.version);
+    await FS.writeFile(runtimeFilePath, template);
 }
