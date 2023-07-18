@@ -22,7 +22,11 @@ export default class PackageExport {
     }
     
     public serialize() {
-        return `export const ${this.key} = ${PACKAGE_SCOPE_KEY}.${this.key};`
+        const string = `export const ${this.key} = ${PACKAGE_SCOPE_KEY}.${this.key};`
+        if (this.key === 'global') {
+            return `if (typeof global === 'undefined') { ${string} }`
+        }
+        return string;
     }
     
     public serializeImport() {
