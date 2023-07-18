@@ -3,3 +3,4 @@ output/
 .npm/
 .idea/
 .meteor-vite
+/.run
