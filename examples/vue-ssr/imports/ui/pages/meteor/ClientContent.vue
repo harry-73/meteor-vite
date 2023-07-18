@@ -25,6 +25,7 @@ const message = ref('');
 const messages = ref([]);
 function send() {
     Methods.send(message.value);
+    message.value = '';
 }
 Tracker.autorun(() => {
     const sub = Publications.all();
