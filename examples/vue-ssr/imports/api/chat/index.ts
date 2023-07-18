@@ -34,6 +34,6 @@ if (Meteor.isServer) {
         Object.fromEntries(Object.entries(Methods).map(([method, handler]) => [`${CollectionName}.${method}`, handler]))
     )
     Object.entries(Publications).forEach(([name, handler]) => {
-        Meteor.publish(name, handler);
+        Meteor.publish(`${CollectionName}.${name}`, handler);
     })
 }
