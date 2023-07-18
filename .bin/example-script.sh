@@ -9,6 +9,11 @@ NPM_LINK_TARGET="$PWD/npm-packages/meteor-vite"
 export METEOR_PACKAGE_DIRS="$PWD/packages"
 export BUILD_METEOR_VITE_DEPENDENCY="true"
 
+install() {
+  cd "$APP_DIR" || exit 1
+  meteor npm i
+}
+
 build() {
     (link)
     cd "$APP_DIR" || exit 1
