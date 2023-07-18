@@ -2,14 +2,14 @@ import { Meteor } from 'meteor/meteor';
 import { Mongo } from 'meteor/mongo';
 
 export const CollectionName = 'chat';
-export const Collection = new Mongo.Collection(CollectionName);
+export const Collection = new Mongo.Collection<{ message: string, timestamp: number }>(CollectionName);
 export const Methods = {
     send(message: unknown) {
         if (Meteor.isServer) {
             if (typeof message !== 'string') {
                 throw new Meteor.Error('Your message needs to be a plain string!');
             }
-            return Collection.insert({ message });
+            return Collection.insert({ message, timestamp: Date.now() });
         }
         
         Meteor.call(`${CollectionName}.send`, message, (err) => {
