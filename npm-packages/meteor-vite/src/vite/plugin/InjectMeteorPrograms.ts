@@ -93,9 +93,14 @@ async function updateRuntime(runtimeFilePath: string, config: MeteorRuntimeConfi
     await FS.writeFile(runtimeFilePath, template);
 }
 
+/**
+ * Stub out a simulation for a Meteor client environment.
+ * This is just enough to allow the Meteor core packages to load without breaking the server, but it's far from optimal.
+ */
 function meteorContext(moduleContent: string) {
     // https://regex101.com/r/gb8IiO/1
     const template = moduleContent.replace(/(}\))\(\);(?!.{4})/ms, '$1.call(context)')
+                                  .replace('var proc = global.process', 'var proc = {}')
     // language=js
     return `
 const context = (()=>{
@@ -110,8 +115,18 @@ const context = (()=>{
         }
     }
 )();
+const document = Object.assign(context.document || {}, {
+    addEventListener: () => null,
+    getElementsByTagName: () => ({
+        item: () => {},
+    })
+});
+let navigator = undefined;
+const window = typeof context.window !== 'undefined' ? context.window : document;
+if (context.Meteor && !context.Meteor.isServer) {
+    context.Meteor.isServer = true;
+}
 (function () {
-    console.log(this);
 ${template}
 }).call(context);
 `
