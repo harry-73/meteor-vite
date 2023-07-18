@@ -18,22 +18,22 @@
     "release": "npm run publish:vite-bundler && changeset publish",
 
     "install:package": "cd npm-packages/meteor-vite && meteor npm install",
-    "install:vue": "cd examples/vue && meteor npm install",
-    "install:vue-ssr": "cd examples/vue-ssr && meteor npm install",
-    "install:svelte": "cd examples/svelte && meteor npm install",
+    "install:vue": ".bin/example-app.sh install vue",
+    "install:vue-ssr": ".bin/example-app.sh install vue-ssr",
+    "install:svelte": ".bin/example-app.sh install svelte",
 
     "build:package": "cd npm-packages/meteor-vite && meteor npm run build",
-    "build:vue": "meteor npm run build:package && (cd examples/vue && meteor npm run meteor-vite-internal:build)",
-    "build:vue-ssr": "meteor npm run build:package && (cd examples/vue-ssr && meteor npm run meteor-vite-internal:build)",
-    "build:svelte": "meteor npm run build:package && (cd examples/svelte && meteor npm run meteor-vite-internal:build)",
+    "build:vue": ".bin/example-app.sh build vue",
+    "build:vue-ssr": ".bin/example-app.sh build vue-ssr",
+    "build:svelte": ".bin/example-app.sh build svelte",
 
     "link:package": "meteor npm run link:vue && meteor npm run link:svelte",
-    "link:vue": "cd examples/vue && meteor npm link ../../npm-packages/meteor-vite",
-    "link:vue-ssr": "cd examples/vue-ssr && meteor npm link ../../npm-packages/meteor-vite",
-    "link:svelte": "cd examples/svelte && meteor npm link ../../npm-packages/meteor-vite",
+    "link:vue": ".bin/example-app.sh link vue",
+    "link:vue-ssr": ".bin/example-app.sh link vue-ssr",
+    "link:svelte": ".bin/example-app.sh link svelte",
 
-    "start:vue": "meteor npm run build:package && (cd examples/vue && meteor npm run meteor-vite-internal:start)",
-    "start:vue-ssr": "meteor npm run build:package && (cd examples/vue-ssr && meteor npm run meteor-vite-internal:start)",
-    "start:svelte": "meteor npm run build:package && (cd examples/svelte && meteor npm run meteor-vite-internal:start)"
+    "start:vue": ".bin/example-app.sh start vue",
+    "start:vue-ssr": ".bin/example-app.sh start vue-ssr",
+    "start:svelte": ".bin/example-app.sh start svelte"
   }
 }
