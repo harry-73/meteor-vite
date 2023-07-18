@@ -123,9 +123,6 @@ const document = Object.assign(context.document || {}, {
 });
 let navigator = undefined;
 const window = typeof context.window !== 'undefined' ? context.window : document;
-if (context.Meteor && !context.Meteor.isServer) {
-    context.Meteor.isServer = true;
-}
 (function () {
 ${template}
 }).call(context);
