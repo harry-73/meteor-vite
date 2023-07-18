@@ -3,7 +3,7 @@ import { Mongo } from 'meteor/mongo';
 
 export const CollectionName = 'chat';
 export const Collection = new Mongo.Collection(CollectionName);
-const Methods = {
+export const Methods = {
     send(message: unknown) {
         if (Meteor.isServer) {
             if (typeof message !== 'string') {
