@@ -60,8 +60,7 @@ export default async function InjectMeteorPrograms(pluginSettings:  Pick<PluginS
                 const newContent = content.split(/[\r\n]/).map((line) => line.replace(/^(\w+) =/, 'globalThis.$1 =')).join('\n');
                 return newContent;
             }
-            return content.replace(/global = this/g, 'global = globalThis')
-                          .replace(/^([\w]+) =/gi, 'globalThis.$1 =');
+            return meteorContext(content);
         },
         
     } satisfies Plugin;
@@ -85,4 +84,28 @@ async function updateRuntime(runtimeFilePath: string, config: MeteorRuntimeConfi
     const template = `globalThis.__meteor_runtime_config__ = ${JSON.stringify(config)}`;
     Logger.info('Writing new Runtime config: %s', config?.autoupdate?.versions?.['web.browser']?.version);
     await FS.writeFile(runtimeFilePath, template);
+}
+
+function meteorContext(moduleContent: string) {
+    // https://regex101.com/r/gb8IiO/1
+    const template = moduleContent.replace(/(}\))\(\);(?!.{4})/ms, '$1.call(context)')
+    // language=js
+    return `
+const context = (()=>{
+        if (typeof globalThis !== 'undefined') {
+            return globalThis;
+        } else if (typeof self !== 'undefined') {
+            return self;
+        } else if (typeof window !== 'undefined') {
+            return window;
+        } else {
+            return Function('return this')();
+        }
+    }
+)();
+(function () {
+    console.log(this);
+${template}
+}).call(context);
+`
 }
