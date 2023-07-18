@@ -3,12 +3,12 @@ import { performance } from 'node:perf_hooks'
 import fs from 'fs-extra'
 import { execaSync } from 'execa'
 import pc from 'picocolors'
-import { createWorkerFork, cwd, getProjectPackageJson, getTempDir } from './workers';
+import { createWorkerFork, cwd, getProjectPackageJson } from './workers';
 
 if (process.env.NODE_ENV !== 'production') return
 
 // Not in a project (publishing the package)
-if (!process.env.VITE_METEOR_DISABLED) return
+if (process.env.VITE_METEOR_DISABLED) return
 
 const pkg = getProjectPackageJson();
 const meteorMainModule = pkg.meteor?.mainModule?.client
