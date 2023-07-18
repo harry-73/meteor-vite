@@ -52,6 +52,10 @@ export function createWorkerFork(hooks: Partial<WorkerResponseHooks>) {
     
     return {
         call(method: Omit<WorkerMethod, 'replies'>) {
+            if (shuttingDown) {
+                console.warn(new Error(`Tried to call IPC method ${method.method} while worker is shutting down.`))
+                return;
+            }
             child.send(method);
         },
         child,
@@ -63,6 +67,7 @@ function registerTeardownHandler(child: ChildProcess) {
         teardownHandlerRegistered = true;
         ['exit', 'SIGINT', 'SIGHUP', 'SIGTERM'].forEach(event => {
             let listener = () => {
+                shuttingDown = true;
                 child.kill();
                 teardownAll();
                 process.removeListener(event, listener);
@@ -77,6 +82,7 @@ function registerTeardownHandler(child: ChildProcess) {
 }
 
 let teardownHandlerRegistered = false;
+let shuttingDown = false;
 const completedHandlers: number[] = [];
 const teardownHandlers: TeardownHandler[] = [];
 type TeardownHandler = () => void;
