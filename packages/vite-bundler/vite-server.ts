@@ -159,6 +159,8 @@ function createMeteorViteBundleWatcher() {
         restartTimeout = setTimeout(() => recreateViteServer(event), 1000);
     });
     
+    viteServer.child.once('exit', () => watcher.close());
+    
     onTeardown(() => {
         watcher.close();
         console.log('Removed meteor-vite bundle watcher');
