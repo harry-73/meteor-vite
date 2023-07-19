@@ -10,6 +10,7 @@ import { createErrorHandler } from '../error/ErrorHandler';
 import { MeteorViteError } from '../error/MeteorViteError';
 import { MeteorViteConfig } from '../MeteorViteConfig';
 import ViteLoadRequest from '../ViteLoadRequest';
+import { usesMeteorFrontend } from './InjectMeteorPrograms';
 
 export const MeteorStubs = setupPlugin(async (pluginSettings: PluginSettings) => {
     if (!pluginSettings?.packageJson?.meteor?.mainModule?.client) {
@@ -47,8 +48,9 @@ export const MeteorStubs = setupPlugin(async (pluginSettings: PluginSettings) =>
                 requestId: request.context.id,
                 importPath: request.requestedModulePath,
                 stubValidation: resolvedConfig.meteor?.stubValidation,
+                usesMeteorFrontend: usesMeteorFrontend(resolvedConfig),
                 meteorPackage,
-            })
+            });
             
             request.log.debug(`Meteor stub created`, {
                 'Parse time': meteorPackage.meta.timeSpent,
