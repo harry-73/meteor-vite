@@ -48,6 +48,7 @@ export default CreateIPCInterface({
         }
         
         const results = await build({
+            configFile: viteConfig.configFile,
             build: {
                 lib: {
                     entry: viteConfig?.meteor?.clientEntry,
@@ -63,10 +64,7 @@ export default CreateIPCInterface({
                 minify: false,
             },
             plugins: [
-                MeteorStubs({
-                    meteor,
-                    packageJson,
-                }),
+                MeteorStubs({ meteor, packageJson, }),
                 InjectMeteorPrograms({ meteor }),
             ],
         });
