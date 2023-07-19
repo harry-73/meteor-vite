@@ -111,6 +111,9 @@ export default async function InjectMeteorPrograms(pluginSettings:  Pick<PluginS
     } satisfies Plugin;
 }
 
+/**
+ * Build up a master "imports" file for importing every client-side module exported by Meteor.
+ */
 async function getProgramImports(programJsonPath: string) {
     const program: MeteorProgram = JSON.parse(await FS.readFile(programJsonPath, 'utf-8'));
     const virtualImports: string[] = [];
