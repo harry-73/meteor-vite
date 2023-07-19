@@ -7,6 +7,11 @@ import { PluginSettings } from './MeteorStubs';
 import { Plugin } from 'vite';
 import Path from 'path';
 
+/**
+ * Inject Meteor's client bundle into the final Vite bundle.
+ * This only applies when Vite is used as an exclusive frontend for your Meteor app.
+ * {@link MeteorViteMode frontend/ssr mode}
+ */
 export default async function InjectMeteorPrograms(pluginSettings:  Pick<PluginSettings, 'meteor'>) {
     const bundlePath = Path.join(pluginSettings.meteor.packagePath, '../');
     const runtimeFile = Path.join(bundlePath, '__meteor_runtime_config.js');
@@ -16,13 +21,21 @@ export default async function InjectMeteorPrograms(pluginSettings:  Pick<PluginS
     /**
      * Whether Vite is responsible for hosting the app's HTML or Meteor.
      * In most cases this will be Meteor, but if you only want to use Meteor as an API server rather than a full
-     * stack framework and rely on Vite for hosting the frontend, supply SSR in your config.
+     * stack framework and rely on Vite for hosting the frontend, supply 'ssr' or 'frontend' in your config.
      *
      * This will make meteor-vite try to import client bundles (packages hosted by Atmosphere, or code in your
      * Meteor client MainModule) directly from your Meteor app and serve it as a simulated Meteor app bundle.
      * @returns {boolean}
      */
-    const hasMeteorFrontend = () => resolvedConfig.meteor?.viteMode !== 'ssr';
+    const hasMeteorFrontend = () => {
+        if (resolvedConfig.meteor?.viteMode === 'ssr') {
+            return false;
+        }
+        if (resolvedConfig.meteor?.viteMode === 'frontend') {
+            return false;
+        }
+        return true;
+    };
     
     
     return {
@@ -61,10 +74,10 @@ export default async function InjectMeteorPrograms(pluginSettings:  Pick<PluginS
          * SSR through Vite and Meteor is only used as a real-time API server.
          */
         async load(id) {
+            id = id.slice(1);
             if (hasMeteorFrontend()) {
                 return;
             }
-            id = id.slice(1);
             if (id.startsWith('virtual:meteor-bundle')) {
                 return virtualImports.join('\n');
             }
@@ -73,10 +86,17 @@ export default async function InjectMeteorPrograms(pluginSettings:  Pick<PluginS
             }
             const filePath = Path.join(process.cwd(), id);
             let content = await FS.readFile(filePath, 'utf-8');
+            
             if (id.endsWith('global-imports.js')) {
                 content = content.split(/[\r\n]/).map((line) => line.replace(/^(\w+) =/, 'globalThis.$1 =')).join('\n');
             }
-            content = meteorContext(content);
+            
+            content = addGlobalContextStubs(content);
+            
+            if (resolvedConfig.meteor?.viteMode === 'ssr') {
+                content = stubForSSR(content);
+            }
+            
             if (content.match(/document/) && resolvedConfig.meteor?.debug) {
                 const format = Path.parse(id);
                 const writeDir = '.meteor-vite/injected-programs';
@@ -84,6 +104,7 @@ export default async function InjectMeteorPrograms(pluginSettings:  Pick<PluginS
                 await FS.mkdir(writeDir, { recursive: true });
                 await FS.writeFile(writePath, content);
             }
+            
             return content;
         },
         
@@ -103,6 +124,12 @@ async function getProgramImports(programJsonPath: string) {
     return virtualImports;
 }
 
+/**
+ * Update the global __meteor_runtime_config__ variable with new data from Meteor.
+ * This is a variable normally injected directly into the HTML by Meteor to configure the client, and changes with
+ * every change to the client mainModule. Updating this is important to prevent Meteor's "autoupdate" package from
+ * indefinitely refreshing the page to get an up-to-date config.
+ */
 async function updateRuntime(runtimeFilePath: string, config: MeteorRuntimeConfig) {
     // language=js
     const template = `globalThis.__meteor_runtime_config__ = ${JSON.stringify(config)}`;
@@ -110,14 +137,17 @@ async function updateRuntime(runtimeFilePath: string, config: MeteorRuntimeConfi
     await FS.writeFile(runtimeFilePath, template);
 }
 
+
 /**
- * Stub out a simulation for a Meteor client environment.
- * This is just enough to allow the Meteor core packages to load without breaking the server, but it's far from optimal.
+ * Add stubs for the global context expected by Meteor's client bundles.
+ * This is necessary as Meteor expects `this` to be bound to the browser's global `window` context. But modules
+ * imported by Vite have `this` set to undefined and don't bind to the global context.
+ *
+ * So here we just bind "window" (or "global" for SSR) to the bundle's "this" context.
  */
-function meteorContext(moduleContent: string) {
+function addGlobalContextStubs(moduleContent: string) {
     // https://regex101.com/r/gb8IiO/1
     const template = moduleContent.replace(/(}\))\(\);(?!.{4})/ms, '$1.call(context)')
-                                  .replace('var proc = global.process', 'var proc = {}')
     // language=js
     return `
 const context = (()=>{
@@ -132,6 +162,22 @@ const context = (()=>{
         }
     }
 )();
+(function () {
+${template}
+}).call(context);
+`
+}
+
+/**
+ * Stub out a simulation for a Meteor client environment.
+ * This is just enough to allow the Meteor core packages to load without breaking the server, but it's far from optimal,
+ * as we're only supplying empty placeholder objects for browser context APIs not available on the server.
+ */
+function stubForSSR(moduleContent: string) {
+    const template = moduleContent.replace('var proc = global.process', 'var proc = {}');
+    // language=js
+    return `
+// SSR Stubs
 const document = Object.assign(context.document || {}, {
     addEventListener: () => null,
     getElementsByTagName: () => ({
@@ -140,8 +186,7 @@ const document = Object.assign(context.document || {}, {
 });
 let navigator = undefined;
 const window = typeof context.window !== 'undefined' ? context.window : document;
-(function () {
+
 ${template}
-}).call(context);
 `
 }
