@@ -7,7 +7,7 @@ APP_DIR="$PWD/examples/$app"
 BUILD_TARGET="$PWD/examples/output/$app"
 NPM_LINK_TARGET="$PWD/npm-packages/meteor-vite"
 export METEOR_PACKAGE_DIRS="$PWD/packages"
-export BUILD_METEOR_VITE_DEPENDENCY="true"
+export METEOR_VITE_TSUP_BUILD_WATCHER="true"
 
 install() {
   cd "$APP_DIR" || exit 1
