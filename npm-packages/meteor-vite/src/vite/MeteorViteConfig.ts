@@ -36,16 +36,24 @@ export declare interface MeteorViteConfig extends ResolvedConfig {
 /**
  * Specifies how you want to use Vite with Meteor.
  *
- * hmr = Vite is used for bundling your client assets for production and as a HMR server in development
+ * bundler = Your frontend application is hosted by Meteor, but you're using Vite to bundle your app and provide blazing
+ * fast Hot-Module-Replacement in development mode. (recommended)
  *
- * ssr = Vite is used as a replacement for Meteor's webapp. This assumes you have Vite configured to handle
- * server-side rendering. In this mode, Meteor is only used as a DDP server and for serving its package bundles.
+ * Experimental modes:
  *
- * @default hmr
+ * frontend = Vite is responsible for bundling and hosting the user-facing part of your Meteor app. Vite will pull
+ * in Meteor client bundles from Meteor and serve them to your clients as if Vite was the Meteor server. Meteor is
+ * used as a DDP API server.
+ *
+ * ssr = Vite is used as a full replacement of your Meteor web app and will also simulate a Meteor client in order
+ * to render your app on the server. This assumes you have Vite configured for SSR. (highly experimental)
+ *
+ * @default bundler
  */
 export type MeteorViteMode =
-    | 'hmr' // Using Vite for blazing fast Hot Module Replacement (Users should connect to the Meteor URL)
-    | 'ssr' // Using Vite as a Server-Side Renderer (Users should access their app from the Vite connection URL)
+    | 'bundler' // Using Vite for blazing fast Hot Module Replacement and bundling your app (Meteor hosts your app)
+    | 'frontend' // Using Vite as a replacement for Meteor's frontend web app. (Vite hosts your app)
+    | 'ssr' // Using Vite as a Server-Side Renderer (Vite hosts your app and acts as a Meteor client)
 
 export interface StubValidationSettings {
     /**
