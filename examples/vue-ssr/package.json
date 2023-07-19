@@ -3,7 +3,7 @@
   "private": true,
   "scripts": {
     "start": "meteor run",
-    "build": "meteor build ../output/vue --directory",
+    "build": "meteor build ../output/vue --directory"
   },
   "meteor": {
     "mainModule": {
