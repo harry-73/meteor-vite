@@ -166,12 +166,6 @@ try {
   fs.emptyDirSync(viteOutSrcDir)
 
   const files = payload.output.map(o => o.fileName);
-
-  if (payload.build.target !== 'meteor') {
-    console.log(pc.blue(`⚡️ Omitting ${pc.yellow(payload.build.target)} Vite bundle from Meteor output. You should host the Vite bundle separately!`));
-    return;
-  }
-
   for (const file of files) {
     const from = path.join(payload.build.outDir, file)
     const to = path.join(viteOutSrcDir, file)
@@ -197,12 +191,20 @@ try {
   // Patch meteor entry
   const meteorEntry = path.join(cwd, meteorMainModule)
   const originalEntryContent = fs.readFileSync(meteorEntry, 'utf8')
-  const patchedEntryContent = `import ${JSON.stringify(`./${path.relative(path.dirname(meteorEntry), path.join(viteOutSrcDir, entryAsset.fileName))}`)}\n${originalEntryContent}`
-  fs.writeFileSync(meteorEntry, patchedEntryContent, 'utf8')
+  if (payload.build.target === 'meteor') {
+    fs.writeFileSync(meteorEntry, `import ${JSON.stringify(`./${path.relative(path.dirname(meteorEntry), path.join(viteOutSrcDir, entryAsset.fileName))}`)}\n${originalEntryContent}`, 'utf8')
+  }
 
   class Compiler {
     processFilesForTarget (files) {
       files.forEach(file => {
+        if (payload.build.target !== 'meteor') {
+          file.addAsset({
+            path: file.getPathInPackage(),
+            data: file.getContentsAsBuffer(),
+          })
+          return;
+        }
         switch (path.extname(file.getBasename())) {
           case '.js':
             file.addJavaScript({

@@ -4,7 +4,7 @@ import { build, resolveConfig } from 'vite';
 import { MeteorViteConfig } from '../../vite/MeteorViteConfig';
 import { MeteorStubs } from '../../vite';
 import MeteorVitePackage from '../../../package.json';
-import InjectMeteorPrograms, { usesMeteorFrontend } from '../../vite/plugin/InjectMeteorPrograms';
+import InjectMeteorPrograms from '../../vite/plugin/InjectMeteorPrograms';
 import { PluginSettings, ProjectJson } from '../../vite/plugin/MeteorStubs';
 import CreateIPCInterface, { IPCReply } from './IPC/interface';
 import { resolveConfigFilePath } from './vite-server';
@@ -20,11 +20,9 @@ type Replies = IPCReply<{
     data: {
         payload: {
             success: boolean,
-            meteorViteConfig: MeteorViteConfig['meteor'],
+            meteorViteConfig: any,
             build: {
                 outDir: string;
-                originalOutDir: string;
-                target: 'meteor' | 'standalone';
             }
             output?: {name?: string, type: string, fileName: string}[]
         };
@@ -48,14 +46,6 @@ export default CreateIPCInterface({
             configFile: resolveConfigFilePath(packageJson),
         }, 'build');
         
-        const bundleTarget = usesMeteorFrontend(viteConfig) ? 'meteor' : 'standalone'
-        const standaloneOutDir = viteConfig.build.outDir || '.vite-output';
-        let outDir = viteOutDir;
-        
-        if (bundleTarget !== 'meteor') {
-            outDir = standaloneOutDir;
-        }
-        
         if (!viteConfig.meteor?.clientEntry) {
             throw new Error(`You need to specify an entrypoint in your Vite config! See: ${MeteorVitePackage.homepage}`);
         }
@@ -73,7 +63,7 @@ export default CreateIPCInterface({
                         chunkFileNames: '[name].js',
                     },
                 },
-                outDir,
+                outDir: viteOutDir,
                 minify: false,
             },
             plugins: [
@@ -114,8 +104,6 @@ export default CreateIPCInterface({
                     meteorViteConfig: viteConfig.meteor,
                     build: {
                         outDir: viteConfig.build.outDir,
-                        target: usesMeteorFrontend(viteConfig) ? 'meteor' : 'standalone',
-                        originalOutDir: standaloneOutDir,
                     },
                     output: result.output.map(o => ({
                         name: o.name,
