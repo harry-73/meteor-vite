@@ -1,5 +1,5 @@
 import { MeteorViteMode, StubValidationSettings } from '../../vite/MeteorViteConfig';
-import { METEOR_CLIENT_IMPORTS_MODULE, usesMeteorFrontend } from '../../vite/plugin/InjectMeteorPrograms';
+import { METEOR_CLIENT_IMPORTS_MODULE } from '../../vite/plugin/InjectMeteorPrograms';
 import { StubValidatorOptions } from '../client/ValidateStub';
 import MeteorPackage from './components/MeteorPackage';
 
