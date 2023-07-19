@@ -43,6 +43,9 @@ if (Meteor.isDevelopment) {
         viteServer = createViteServer();
     })
     
+    /**
+     * Relay any IPC messages from the Meteor daemon to the Meteor-Vite worker to handle client refresh notices.
+     */
     process.on('message', (message) => {
         if (!isMeteorIPCMessage(message)) return;
         viteServer.call({
