@@ -25,9 +25,9 @@ if (!meteorMainModule) {
 }
 
 const tempDir = getTempDir();
-const tempMeteorProject = path.resolve(tempDir, 'meteor')
-const tempMeteorOutDir = path.join(tempDir, 'bundle', 'meteor')
-const viteOutDir = path.join(tempDir, 'bundle', 'vite');
+const tempMeteorProject = path.resolve(tempDir, 'input', 'meteor')
+const tempMeteorOutDir = path.join(tempDir, 'output', 'meteor')
+const viteOutDir = path.join(tempDir, 'output', 'vite');
 
 // Temporary Meteor build
 
@@ -159,6 +159,7 @@ try {
 
     // Copy the assets to the Meteor auto-imported sources
     const viteOutSrcDir = path.join(cwd, 'client', 'vite')
+    console.log({ viteOutSrcDir, viteOutDir })
     fs.ensureDirSync(viteOutSrcDir)
     fs.emptyDirSync(viteOutSrcDir)
     const files = payload.output.map(o => o.fileName)
