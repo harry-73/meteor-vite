@@ -101,7 +101,7 @@ async function getProgramImports(programJsonPath: string) {
     
     program.manifest.forEach((entry) => {
         if (entry.type === 'js') {
-            virtualImports.push(`import '\0${METEOR_CLIENT_IMPORTS_MODULE}/${entry.path}';`)
+            virtualImports.push(`import '${METEOR_CLIENT_IMPORTS_MODULE}/${entry.path}';`)
         }
     });
     
