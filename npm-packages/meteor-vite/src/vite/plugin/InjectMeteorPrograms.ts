@@ -23,7 +23,7 @@ export default async function InjectMeteorPrograms(pluginSettings:  Pick<PluginS
      * In most cases this will be Meteor, but if you only want to use Meteor as an API server rather than a full
      * stack framework and rely on Vite for hosting the frontend, supply 'ssr' or 'frontend' in your config.
      *
-     * This will make meteor-vite try to import client bundles (packages hosted by Atmosphere, or code in your
+     * This will make meteor-vite try to import client bundles (packages hosted by Atmosphere, and code in your
      * Meteor client MainModule) directly from your Meteor app and serve it as a simulated Meteor app bundle.
      * @returns {boolean}
      */
