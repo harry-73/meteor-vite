@@ -37,6 +37,7 @@ async function applyVersion() {
 
     shell(`git add ${meteorPackage.packageJsPath}`);
     shell(`git commit -m 'Bump ${meteorPackage.releaseName} version to ${release.newVersion}'`);
+    shell(`git tag ${meteorPackage.releaseName}@${release.newVersion}`);
 }
 
 async function publish() {
