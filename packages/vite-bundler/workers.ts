@@ -49,7 +49,12 @@ export function createWorkerFork(hooks: Partial<WorkerResponseHooks>) {
         return hook(message.data);
     });
     
-    
+    child.on('exit', (code) => {
+        if (!code) {
+            return;
+        }
+        throw new Error(`Vite-Bundler worker exited with exit code: ${code}`);
+    })
     
     return {
         call(method: Omit<WorkerMethod, 'replies'>) {
