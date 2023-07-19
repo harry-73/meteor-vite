@@ -119,7 +119,7 @@ function sendViteConfig(reply: Replies) {
             host: config.server?.host,
             port: config.server?.port,
             entryFile: config.meteor?.clientEntry,
-            mode: config.meteor?.viteMode || 'hmr',
+            mode: config.meteor?.viteMode || 'bundler',
         }
     })
 }
