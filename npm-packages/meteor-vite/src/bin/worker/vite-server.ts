@@ -62,7 +62,7 @@ export default CreateIPCInterface({
         
         if (!server) {
             server = await createServer({
-                configFile: packageJson.meteor?.viteConfig,
+                configFile: resolveConfigFilePath(packageJson),
                 plugins: [
                     MeteorStubs({ meteor, packageJson }),
                     InjectMeteorPrograms({ meteor }),
@@ -122,4 +122,12 @@ function sendViteConfig(reply: Replies) {
             mode: config.meteor?.viteMode || 'bundler',
         }
     })
+}
+
+export function resolveConfigFilePath(packageJson: ProjectJson) {
+    if (!packageJson?.meteor?.viteConfig) {
+        return undefined;
+    }
+    
+    return Path.resolve(packageJson.meteor.viteConfig);
 }

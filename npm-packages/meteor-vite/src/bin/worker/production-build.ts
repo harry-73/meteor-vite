@@ -1,3 +1,4 @@
+import Path from 'path';
 import { RollupOutput } from 'rollup';
 import { build, resolveConfig } from 'vite';
 import { MeteorViteConfig } from '../../vite/MeteorViteConfig';
@@ -5,6 +6,7 @@ import { MeteorStubs } from '../../vite';
 import MeteorVitePackage from '../../../package.json';
 import { PluginSettings, ProjectJson } from '../../vite/plugin/MeteorStubs';
 import CreateIPCInterface, { IPCReply } from './IPC/interface';
+import { resolveConfigFilePath } from './vite-server';
 
 interface BuildOptions {
     viteOutDir: string;
@@ -37,7 +39,7 @@ export default CreateIPCInterface({
         })
         
         const viteConfig: MeteorViteConfig = await resolveConfig({
-            configFile: packageJson?.meteor?.viteConfig
+            configFile: resolveConfigFilePath(packageJson),
         }, 'build');
         
         if (!viteConfig.meteor?.clientEntry) {
@@ -98,7 +100,5 @@ export default CreateIPCInterface({
         })
     }
 })
-
-
 
 
