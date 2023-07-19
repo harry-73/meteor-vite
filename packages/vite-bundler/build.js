@@ -179,7 +179,7 @@ try {
       babelOptions.sourceMaps = true
       babelOptions.filename = babelOptions.sourceFileName = from
       const transpiled = Babel.compile(source, babelOptions, {
-        cacheDirectory: path.join(cwd, 'node_modules', '.babel-cache'),
+        cacheDirectory: path.join(tempDir, '.babel-cache'),
       })
       fs.writeFileSync(to, transpiled.code, 'utf8')
     } else {
