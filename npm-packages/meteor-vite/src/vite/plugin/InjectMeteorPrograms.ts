@@ -97,9 +97,9 @@ export default async function InjectMeteorPrograms(pluginSettings:  Pick<PluginS
                 content = stubForSSR(content);
             }
             
-            if (content.match(/document/) && resolvedConfig.meteor?.debug) {
+            if (resolvedConfig.meteor?.debug) {
                 const format = Path.parse(id);
-                const writeDir = '.meteor-vite/injected-programs';
+                const writeDir = `.meteor-vite/${resolvedConfig.meteor.viteMode}/injected-programs`;
                 const writePath = Path.join(writeDir, `${format.name}${format.ext}`);
                 await FS.mkdir(writeDir, { recursive: true });
                 await FS.writeFile(writePath, content);
