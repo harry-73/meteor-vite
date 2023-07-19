@@ -1,11 +1,14 @@
 import FS from 'fs/promises';
+import Path from 'path';
+import { Plugin } from 'vite';
 import Logger from '../../Logger';
 import { MeteorProgram, MeteorRuntimeConfig } from '../../meteor/InternalTypes';
 import MeteorEvents from '../../meteor/MeteorEvents';
-import { MeteorViteConfig } from '../MeteorViteConfig';
+import { MeteorViteConfig, MeteorViteMode } from '../MeteorViteConfig';
 import { PluginSettings } from './MeteorStubs';
-import { Plugin } from 'vite';
-import Path from 'path';
+
+export const METEOR_CLIENT_IMPORTS_MODULE = 'virtual:meteor-bundle';
+export const DEFAULT_METEOR_VITE_MODE = 'bundler' as const;
 
 /**
  * Inject Meteor's client bundle into the final Vite bundle.
@@ -18,24 +21,6 @@ export default async function InjectMeteorPrograms(pluginSettings:  Pick<PluginS
     const virtualImports = [`import '${runtimeFile}';`, ...await getProgramImports(Path.join(bundlePath, '/program.json'))];
     let resolvedConfig: MeteorViteConfig;
     
-    /**
-     * Whether Vite is responsible for hosting the app's HTML or Meteor.
-     * In most cases this will be Meteor, but if you only want to use Meteor as an API server rather than a full
-     * stack framework and rely on Vite for hosting the frontend, supply 'ssr' or 'frontend' in your config.
-     *
-     * This will make meteor-vite try to import client bundles (packages hosted by Atmosphere, and code in your
-     * Meteor client MainModule) directly from your Meteor app and serve it as a simulated Meteor app bundle.
-     * @returns {boolean}
-     */
-    const hasMeteorFrontend = () => {
-        if (resolvedConfig.meteor?.viteMode === 'ssr') {
-            return false;
-        }
-        if (resolvedConfig.meteor?.viteMode === 'frontend') {
-            return false;
-        }
-        return true;
-    };
     
     
     return {
@@ -45,13 +30,13 @@ export default async function InjectMeteorPrograms(pluginSettings:  Pick<PluginS
         },
         
         resolveId(id) {
-            if (hasMeteorFrontend()) {
+            if (usesMeteorFrontend(resolvedConfig)) {
                 return;
             }
             if (id.startsWith('.meteor')) {
                 return `\0${id}`
             }
-            if (id.startsWith('virtual:meteor-bundle')) {
+            if (id.startsWith(METEOR_CLIENT_IMPORTS_MODULE)) {
                 return `\0${id}`
             }
             if (id.startsWith('\0.meteor')) {
@@ -75,10 +60,10 @@ export default async function InjectMeteorPrograms(pluginSettings:  Pick<PluginS
          */
         async load(id) {
             id = id.slice(1);
-            if (hasMeteorFrontend()) {
+            if (usesMeteorFrontend(resolvedConfig)) {
                 return;
             }
-            if (id.startsWith('virtual:meteor-bundle')) {
+            if (id.startsWith(METEOR_CLIENT_IMPORTS_MODULE)) {
                 return virtualImports.join('\n');
             }
             if (!id.startsWith('.meteor')) {
@@ -113,6 +98,7 @@ export default async function InjectMeteorPrograms(pluginSettings:  Pick<PluginS
 
 /**
  * Build up a master "imports" file for importing every client-side module exported by Meteor.
+ * This is the contents of the {@link METEOR_CLIENT_IMPORTS_MODULE} module
  */
 async function getProgramImports(programJsonPath: string) {
     const program: MeteorProgram = JSON.parse(await FS.readFile(programJsonPath, 'utf-8'));
@@ -192,4 +178,27 @@ const window = typeof context.window !== 'undefined' ? context.window : document
 
 ${template}
 `
+}
+
+/**
+ * Whether Vite is responsible for hosting the app's HTML or Meteor.
+ * In most cases this will be Meteor, but if you only want to use Meteor as an API server rather than a full
+ * stack framework and rely on Vite for hosting the frontend, supply 'ssr' or 'frontend' in your config.
+ *
+ * This will make meteor-vite try to import client bundles (packages hosted by Atmosphere, and code in your
+ * Meteor client MainModule) directly from your Meteor app and serve it as a simulated Meteor app bundle.
+ * @returns {boolean}
+ */
+export function usesMeteorFrontend(resolvedConfig: MeteorViteConfig) {
+    return isViteMode(['bundler'], resolvedConfig);
+}
+
+export function isViteMode<TMode extends MeteorViteMode[]>(
+    mode: TMode,
+    resolvedConfig: MeteorViteConfig,
+): resolvedConfig is Omit<MeteorViteConfig, 'meteor'> & { meteor: Omit<MeteorViteConfig['meteor'], 'viteMode'> & { viteMode: TMode[number] } } {
+    if (mode.includes(resolvedConfig.meteor?.viteMode || DEFAULT_METEOR_VITE_MODE)) {
+        return true;
+    }
+    return false;
 }
