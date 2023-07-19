@@ -4,6 +4,7 @@ import { build, resolveConfig } from 'vite';
 import { MeteorViteConfig } from '../../vite/MeteorViteConfig';
 import { MeteorStubs } from '../../vite';
 import MeteorVitePackage from '../../../package.json';
+import InjectMeteorPrograms from '../../vite/plugin/InjectMeteorPrograms';
 import { PluginSettings, ProjectJson } from '../../vite/plugin/MeteorStubs';
 import CreateIPCInterface, { IPCReply } from './IPC/interface';
 import { resolveConfigFilePath } from './vite-server';
@@ -66,6 +67,7 @@ export default CreateIPCInterface({
                     meteor,
                     packageJson,
                 }),
+                InjectMeteorPrograms({ meteor }),
             ],
         });
         
