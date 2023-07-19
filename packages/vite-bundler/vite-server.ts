@@ -84,7 +84,7 @@ function createViteServer() {
             if (newConfig.ready && !emittedReadyState) {
                 emittedReadyState = true;
                 const dataLine = `      %s:\t%s\t\x1b[2m(%s)\x1b[22m`
-                const serverTypes = newConfig.mode === 'ssr'
+                const serverTypes = newConfig.mode !== 'bundler'
                                     ? { meteor: 'DDP Server', vite: 'App Server' }
                                     : { meteor: 'App Server', vite: 'HMR' };
                 
