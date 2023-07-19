@@ -33,14 +33,8 @@ export default async function InjectMeteorPrograms(pluginSettings:  Pick<PluginS
             if (usesMeteorFrontend(resolvedConfig)) {
                 return;
             }
-            if (id.startsWith('.meteor')) {
-                return `\0${id}`
-            }
             if (id.startsWith(METEOR_CLIENT_IMPORTS_MODULE)) {
                 return `\0${id}`
-            }
-            if (id.startsWith('\0.meteor')) {
-                return id;
             }
         },
         
@@ -63,13 +57,14 @@ export default async function InjectMeteorPrograms(pluginSettings:  Pick<PluginS
             if (usesMeteorFrontend(resolvedConfig)) {
                 return;
             }
-            if (id.startsWith(METEOR_CLIENT_IMPORTS_MODULE)) {
-                return virtualImports.join('\n');
-            }
-            if (!id.startsWith('.meteor')) {
+            if (!id.startsWith(METEOR_CLIENT_IMPORTS_MODULE)) {
                 return;
             }
-            const filePath = Path.join(process.cwd(), id);
+            if (id === METEOR_CLIENT_IMPORTS_MODULE) {
+                return virtualImports.join('\n');
+            }
+            const relativeModulePath = id.replace(`${METEOR_CLIENT_IMPORTS_MODULE}/`, '');
+            const filePath = Path.join(bundlePath, '../', relativeModulePath);
             let content = await FS.readFile(filePath, 'utf-8');
             
             if (id.endsWith('global-imports.js')) {
@@ -106,7 +101,7 @@ async function getProgramImports(programJsonPath: string) {
     
     program.manifest.forEach((entry) => {
         if (entry.type === 'js') {
-            virtualImports.push(`import '\0${Path.join(programJsonPath, '../', entry.path).replace(/^\/+/, '')}';`)
+            virtualImports.push(`import '\0${METEOR_CLIENT_IMPORTS_MODULE}/${entry.path}';`)
         }
     });
     
