@@ -164,7 +164,14 @@ try {
   const viteOutSrcDir = path.join(cwd, 'client', 'vite')
   fs.ensureDirSync(viteOutSrcDir)
   fs.emptyDirSync(viteOutSrcDir)
-  const files = payload.output.map(o => o.fileName)
+
+  const files = payload.output.map(o => o.fileName);
+
+  if (payload.build.target !== 'meteor') {
+    console.log(pc.blue(`⚡️ Omitting ${pc.yellow(payload.build.target)} Vite bundle from Meteor output. You should host the Vite bundle separately!`));
+    return;
+  }
+
   for (const file of files) {
     const from = path.join(payload.build.outDir, file)
     const to = path.join(viteOutSrcDir, file)
