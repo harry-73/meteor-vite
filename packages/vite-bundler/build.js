@@ -228,7 +228,10 @@ try {
     extensions: [],
     filenames: files.map(file => path.basename(file)),
   }, () => new Compiler())
-
 } catch (e) {
   throw e
+} finally {
+  console.log(pc.blue('⚡️ Cleaning up temporary files...'))
+  fs.rmSync(tempDir, { recursive: true, force: true });
+  console.log(pc.green('⚡️ Cleanup completed'))
 }
