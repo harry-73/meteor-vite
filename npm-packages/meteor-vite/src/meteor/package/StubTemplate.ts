@@ -1,4 +1,4 @@
-import { StubValidationSettings } from '../../vite/MeteorViteConfig';
+import { MeteorViteMode, StubValidationSettings } from '../../vite/MeteorViteConfig';
 import { StubValidatorOptions } from '../client/ValidateStub';
 import MeteorPackage from './components/MeteorPackage';
 
@@ -11,9 +11,10 @@ export const TEMPLATE_GLOBAL_KEY = 'g';
  * Used to bridge imports for Meteor code that Vite doesn't have access to, to the below template that acts as a
  * proxy between Vite and Meteor's modules.
  */
-export function stubTemplate({ requestId, meteorPackage, importPath, stubValidation: validationSettings }: {
+export function stubTemplate({ requestId, meteorPackage, importPath, viteMode, stubValidation: validationSettings }: {
     requestId: string;
     stubValidation?: StubValidationSettings,
+    viteMode: MeteorViteMode;
     meteorPackage: MeteorPackage;
     importPath?: string;
 }) {
@@ -30,12 +31,20 @@ export function stubTemplate({ requestId, meteorPackage, importPath, stubValidat
         exportKeys: serializedPackage.exportKeys,
     });
     
+    /**
+     * Explicitly include Meteor's client bundle in the build when Vite is being used as the user-facing part of the
+     * Meteor app.
+     * {@link MeteorViteMode}
+     */
+    if (['ssr', 'frontend'].includes(viteMode)) {
+        serializedPackage.imports.push(`import 'virtual:meteor-bundle';`);
+    }
+    
     // language="js"
     return`
 // requestId: ${requestId}
 // packageId: ${packageId}
 // source path: ${meteorPackage.sourcePath}
-import 'virtual:meteor-bundle';
 
 ${stubValidation.importString}
 const ${TEMPLATE_GLOBAL_KEY} = typeof window !== 'undefined' ? window : global;
