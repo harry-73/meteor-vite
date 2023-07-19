@@ -35,7 +35,7 @@ link() {
 
 start() {
   cd "$APP_DIR" || exit 1
-  meteor npm run
+  meteor npm start
 }
 
 set -x
