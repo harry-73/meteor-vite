@@ -8,10 +8,21 @@ import { Plugin } from 'vite';
 import Path from 'path';
 
 export default async function InjectMeteorPrograms(pluginSettings:  Pick<PluginSettings, 'meteor'>) {
-    let resolvedConfig: MeteorViteConfig;
     const bundlePath = Path.join(pluginSettings.meteor.packagePath, '../');
     const runtimeFile = Path.join(bundlePath, '__meteor_runtime_config.js');
     const virtualImports = [`import '${runtimeFile}';`, ...await getProgramImports(Path.join(bundlePath, '/program.json'))];
+    let resolvedConfig: MeteorViteConfig;
+    
+    /**
+     * Whether Vite is responsible for hosting the app's HTML or Meteor.
+     * In most cases this will be Meteor, but if you only want to use Meteor as an API server rather than a full
+     * stack framework and rely on Vite for hosting the frontend, supply SSR in your config.
+     *
+     * This will make meteor-vite try to import client bundles (packages hosted by Atmosphere, or code in your
+     * Meteor client MainModule) directly from your Meteor app and serve it as a simulated Meteor app bundle.
+     * @returns {boolean}
+     */
+    const hasMeteorFrontend = () => resolvedConfig.meteor?.viteMode !== 'ssr';
     
     
     return {
@@ -21,6 +32,9 @@ export default async function InjectMeteorPrograms(pluginSettings:  Pick<PluginS
         },
         
         resolveId(id) {
+            if (hasMeteorFrontend()) {
+                return;
+            }
             if (id.startsWith('.meteor')) {
                 return `\0${id}`
             }
@@ -47,6 +61,9 @@ export default async function InjectMeteorPrograms(pluginSettings:  Pick<PluginS
          * SSR through Vite and Meteor is only used as a real-time API server.
          */
         async load(id) {
+            if (hasMeteorFrontend()) {
+                return;
+            }
             id = id.slice(1);
             if (id.startsWith('virtual:meteor-bundle')) {
                 return virtualImports.join('\n');
