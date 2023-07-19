@@ -64,7 +64,7 @@ export default async function InjectMeteorPrograms(pluginSettings:  Pick<PluginS
                 return virtualImports.join('\n');
             }
             const relativeModulePath = id.replace(`${METEOR_CLIENT_IMPORTS_MODULE}/`, '');
-            const filePath = Path.join(bundlePath, '../', relativeModulePath);
+            const filePath = Path.join(bundlePath, relativeModulePath);
             let content = await FS.readFile(filePath, 'utf-8');
             
             if (id.endsWith('global-imports.js')) {
