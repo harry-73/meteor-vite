@@ -36,7 +36,7 @@ function formatTimestamp(time: number) {
 </script>
 
 <script lang="ts">
-import { Tracker } from '/.meteor-vite/meteor/tracker/template';
+import { Tracker } from 'meteor/tracker';
 const messages = ref([]);
 
 Tracker.autorun(() => {
