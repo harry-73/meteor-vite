@@ -29,6 +29,7 @@ process.on('message', async (message: WorkerMethod) => {
         process.send(response);
     }, ...message.params as [params: any]).catch((error) => {
         console.error('Vite: worker process encountered an exception!', error);
+        process.exit(1);
     });
 })
 
