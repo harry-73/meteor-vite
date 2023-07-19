@@ -166,7 +166,7 @@ try {
   fs.emptyDirSync(viteOutSrcDir)
   const files = payload.output.map(o => o.fileName)
   for (const file of files) {
-    const from = path.join(viteOutDir, file)
+    const from = path.join(payload.build.outDir, file)
     const to = path.join(viteOutSrcDir, file)
     fs.ensureDirSync(path.dirname(to))
 
@@ -231,7 +231,7 @@ try {
 } catch (e) {
   throw e
 } finally {
-  console.log(pc.blue('⚡️ Cleaning up temporary files...'))
-  fs.rmSync(tempDir, { recursive: true, force: true });
-  console.log(pc.green('⚡️ Cleanup completed'))
+  // console.log(pc.blue('⚡️ Cleaning up temporary files...'))
+  // fs.rmSync(tempDir, { recursive: true, force: true });
+  // console.log(pc.green('⚡️ Cleanup completed'))
 }

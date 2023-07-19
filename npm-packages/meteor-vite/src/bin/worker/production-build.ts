@@ -21,6 +21,9 @@ type Replies = IPCReply<{
         payload: {
             success: boolean,
             meteorViteConfig: any,
+            build: {
+                outDir: string;
+            }
             output?: {name?: string, type: string, fileName: string}[]
         };
     }
@@ -39,7 +42,7 @@ export default CreateIPCInterface({
             }
         })
         
-        const viteConfig: MeteorViteConfig = await resolveConfig({
+        let viteConfig: MeteorViteConfig = await resolveConfig({
             configFile: resolveConfigFilePath(packageJson),
         }, 'build');
         
@@ -64,6 +67,15 @@ export default CreateIPCInterface({
                 minify: false,
             },
             plugins: [
+                // Get fully resolved config to feed any potential changes back to the Meteor compiler.
+                // vite-plugin-ssr prefixes the output directory with the deployment target (client/server)
+                // Resulting in e.g. `output/vite` turning into `output/vite/client`
+                {
+                    name: 'meteor-vite: config resolver',
+                    configResolved: (config) => {
+                        viteConfig = config
+                    }
+                },
                 MeteorStubs({ meteor, packageJson, }),
                 InjectMeteorPrograms({ meteor }),
             ],
@@ -90,6 +102,9 @@ export default CreateIPCInterface({
                 payload: {
                     success: true,
                     meteorViteConfig: viteConfig.meteor,
+                    build: {
+                        outDir: viteConfig.build.outDir,
+                    },
                     output: result.output.map(o => ({
                         name: o.name,
                         type: o.type,
