@@ -68,14 +68,10 @@ export default async function InjectMeteorPrograms(pluginSettings:  Pick<PluginS
             let content = await FS.readFile(filePath, 'utf-8');
             
             if (id.endsWith('global-imports.js')) {
-                content = content.split(/[\r\n]/).map((line) => line.replace(/^(\w+) =/, 'globalThis.$1 =')).join('\n');
+                content = content.split(/[\r\n]/).map((line) => line.replace(/^(\w+) =/, 'context.$1 =')).join('\n');
             }
             
-            content = addGlobalContextStubs(content);
-            
-            if (resolvedConfig.meteor?.viteMode === 'ssr') {
-                content = stubForSSR(content);
-            }
+            content = addGlobalContextStubs(content, { ssr: resolvedConfig.meteor?.viteMode === 'ssr' });
             
             if (resolvedConfig.meteor?.debug) {
                 const format = Path.parse(id);
@@ -129,49 +125,59 @@ async function updateRuntime(runtimeFilePath: string, config: MeteorRuntimeConfi
  *
  * So here we just bind "window" (or "global" for SSR) to the bundle's "this" context.
  */
-function addGlobalContextStubs(moduleContent: string) {
+function addGlobalContextStubs(moduleContent: string, { ssr = false }) {
     // https://regex101.com/r/gb8IiO/1
-    const template = moduleContent.replace(/(}\))\(\);(?!.{4})/ms, '$1.call(context)')
+    let content = moduleContent.replace(/(}\))\(\);(?!.{4})/ms, '$1.call(context)');
+    const headComponents = [StubTemplates.globalContext]
+    
+    if (ssr) {
+        content = content.replace('var proc = global.process', 'var proc = {}')
+        headComponents.push(StubTemplates.ssrStubs);
+    }
+    
     // language=js
     return `
-const context = (()=>{
-        if (typeof globalThis !== 'undefined') {
-            return globalThis;
-        } else if (typeof self !== 'undefined') {
-            return self;
-        } else if (typeof window !== 'undefined') {
-            return window;
-        } else {
-            return Function('return this')();
-        }
-    }
-)();
+${headComponents.join('\n')}
 (function () {
-${template}
+${content}
 }).call(context);
 `
 }
 
-/**
- * Stub out a simulation for a Meteor client environment.
- * This is just enough to allow the Meteor core packages to load without breaking the server, but it's far from optimal,
- * as we're only supplying empty placeholder objects for browser context APIs not available on the server.
- */
-function stubForSSR(moduleContent: string) {
-    const template = moduleContent.replace('var proc = global.process', 'var proc = {}');
+const StubTemplates = {
+    /**
+     * Stub out a simulation for a Meteor client environment.
+     * This is just enough to allow the Meteor core packages to load without breaking the server, but it's far from optimal,
+     * as we're only supplying empty placeholder objects for browser context APIs not available on the server.
+     */
     // language=js
-    return `
-// SSR Stubs
-const document = Object.assign(context.document || {}, {
-    addEventListener: () => null,
-    getElementsByTagName: () => ({
-        item: () => {},
-    })
-});
-let navigator = undefined;
-const window = typeof context.window !== 'undefined' ? context.window : document;
-
-${template}
+    ssrStubs: `
+        const document = Object.assign(context.document || {}, {
+            addEventListener: () => null,
+            getElementsByTagName: () => ({
+                item: () => {},
+            })
+        });
+        let navigator = undefined;
+        const window = typeof context.window !== 'undefined' ? context.window : document;
+`,
+    /**
+     * Attempt to retrieve the global "this" and assign it as "context"
+     */
+    // language=js
+    globalContext: `
+        const context = (()=>{
+            if (typeof globalThis !== 'undefined') {
+                return globalThis;
+            } else if (typeof self !== 'undefined') {
+                return self;
+            } else if (typeof window !== 'undefined') {
+                return window;
+            } else {
+                return Function('return this')();
+            }
+        }
+        )();
 `
 }
 
