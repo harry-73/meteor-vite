@@ -5,8 +5,7 @@ import { execaSync } from 'execa'
 import pc from 'picocolors'
 import { createWorkerFork, cwd, getProjectPackageJson, getTempDir } from './workers';
 import EntryFile from './build/EntryFile';
-import Path from 'path';
-import BuildPayloadProcessor from './build/ProcessBuildPayload';
+import BuildResult from './build/BuildResult';
 
 if (process.env.NODE_ENV !== 'production') return
 
@@ -128,9 +127,17 @@ try {
   fs.ensureDirSync(path.dirname(viteOutDir))
 
   // Build with vite
-  const { payload } = Promise.await(new Promise((resolve, reject) => {
+  const buildResult = Promise.await(new Promise((resolve, reject) => {
     const worker = createWorkerFork({
-      buildResult: (result) => resolve(result) ,
+      buildResult: (result) => {
+
+        const buildResult = new BuildResult({
+          payload: result.payload,
+          entryFile,
+        })
+
+        resolve(buildResult);
+      },
     });
 
     worker.call({
@@ -146,15 +153,10 @@ try {
     })
   }))
 
-  const payloadProcessor = new BuildPayloadProcessor({
-    payload,
-    entryFile,
-  });
-
   endTime = performance.now()
   console.log(pc.green(`⚡️ Build successful (${Math.round((endTime - startTime) * 100) / 100}ms)`))
 
-  const assets = payloadProcessor.copyToProject({
+  const assets = buildResult.copyToProject({
     projectPath: cwd
   });
 

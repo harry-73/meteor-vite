@@ -6,7 +6,7 @@ import { getTempDir } from '../workers';
 import EntryFile, { EntryFiles } from './EntryFile';
 const tempDir = getTempDir();
 
-export default class BuildPayloadProcessor {
+export default class BuildResult {
     protected readonly payload: BuildPayload;
     protected readonly entryFile: EntryFiles;
     
