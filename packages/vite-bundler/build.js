@@ -193,6 +193,10 @@ try {
     }
 
     afterLink () {
+      // This unfortunately will not entirely clean up the entrypoint files.
+      // And performing the cleanup after registering the compiler appears to
+      // remove auto-import entries too early, leading to builds breaking.
+      // Todo: Add more reliable cleanup hook
       buildResult.cleanupCopiedFiles()
     }
   }

@@ -55,11 +55,11 @@ export default class EntryFile {
             Path.dirname(this.relativePath),
             importString.relative,
         )
-        FS.writeFileSync(
-            this.absolutePath,
-            `import ${JSON.stringify(`./${importPath}`)}\n${this.originalContent}`,
-            'utf8'
-        );
+        
+        FS.writeFileSync(this.absolutePath, this.importTemplate({
+            content: this.originalContent,
+            importList: [JSON.stringify(`./${importPath}`)],
+        }), 'utf8');
     }
     
     /**
@@ -72,4 +72,40 @@ export default class EntryFile {
         
         FS.writeFileSync(this.absolutePath, this.originalContent, 'utf-8')
     }
+    
+    protected importTemplate({ content, importList }: { content: string, importList: string[] }) {
+        let { startBlock, imports, endBlock } = content.match(REGEX_AUTO_IMPORT_BLOCK)?.groups || { imports: '' };
+        
+        imports += importList.map((path) => `import '${path}';`).join('\n');
+        imports = imports.trim();
+        
+        if (endBlock && startBlock) {
+            return content.replace(REGEX_AUTO_IMPORT_BLOCK, `${startBlock.trim()}\n${imports}\n${endBlock.trim()}`);
+        }
+        // language=js
+        return  `
+/**
+ * [Vite-Bundler entrypoint injection]
+ * These imports are added by jorgenvatle:vite-bundler during a production build to force the Meteor bundler to accept
+ * modules built by Vite.
+ *
+ * We don't have any good ways of cleaning up these files following a production build without interfering with the
+ * module load-order and lazily loaded packages.
+ *
+ * [THESE IMPORTS SHOULD BE REMOVED] - Do not commit them into version control.
+ **>/
+ ${imports}
+ /** End of vite-bundler production-imports **/
+ 
+ ${content}
+`
+    }
 }
+
+/**
+ * Find the vite:bundler auto-import notice block to add more imports within it.
+ *
+ * {@link https://regex101.com/r/shKDPE/1}
+ * @type {RegExp}
+ */
+const REGEX_AUTO_IMPORT_BLOCK = /(?<startBlock>\*\*>\/[\r\n\s]+)(?<imports>(?:.*[\r\n])*)(?<endBlock>[\s\r\n]*\/\*\* End of vite[\-:]bundler production-imports \*\*\/)/
