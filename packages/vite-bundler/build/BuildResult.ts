@@ -81,7 +81,7 @@ export default class BuildResult {
             
             FS.ensureDirSync(Path.dirname(to))
             
-            if (Path.extname(from) === '.js') {
+            if (['.js', '.mjs'].includes(Path.extname(from))) {
                 // Transpile to Meteor target (Dynamic import support)
                 // @TODO don't use Babel
                 const source = FS.readFileSync(from, 'utf8')
