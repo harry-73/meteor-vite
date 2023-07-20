@@ -1,6 +1,5 @@
 node_modules/
 output/
 .npm/
-.idea/
 .meteor-vite
 /.run
