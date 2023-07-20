@@ -73,7 +73,7 @@ async function runBuild({ viteConfig, viteOutDir, plugins, buildTarget }: {
     viteOutDir: string;
     plugins: PluginOption[],
     buildTarget: MeteorViteBuildTarget;
-}): Promise<BuildOutput> {
+}) {
     let outDir = viteConfig.build.outDir;
     let ssr = viteConfig.build.ssr;
     const entry = buildTarget === 'server'
@@ -166,12 +166,11 @@ export type BuildPayload = {
     success: boolean,
     meteorViteConfig: any,
     outputs?: {
-        client: BuildOutput;
-        server?: BuildOutput;
+        client: FormattedFileChunk[];
+        server?: FormattedFileChunk[];
     };
 }
 
-type BuiltChunk = ReturnType<ReturnType<typeof formatOutput>>
+export type FormattedFileChunk = ReturnType<ReturnType<typeof formatOutput>>
 
-export type BuildOutput = BuiltChunk[];
 

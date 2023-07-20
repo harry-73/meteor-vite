@@ -1,4 +1,7 @@
-import { BuildPayload } from '../../../npm-packages/meteor-vite/src/bin/worker/build-for-production';
+import type {
+    BuildPayload,
+    FormattedFileChunk,
+} from '../../../npm-packages/meteor-vite/src/bin/worker/build-for-production';
 import Path from 'path';
 import FS from 'fs-extra';
 import { getTempDir } from '../workers';
@@ -57,6 +60,7 @@ export default class BuildResult {
     protected processOutput({ copyToPath, target }: { copyToPath: string, target: 'server' | 'client' }) {
         const entryFile = this.entryFile[target];
         const files = this.payload?.outputs?.[target];
+        const entryAssets: FormattedFileChunk[] = [];
         
         if (!files) {
             throw new Error(`No build output emitted for Vite ${target} build!`);
@@ -94,17 +98,21 @@ export default class BuildResult {
                     cacheDirectory: Path.join(tempDir, '.babel-cache'),
                 })
                 FS.writeFileSync(to, transpiled.code, 'utf8')
+                
+                // Patch meteor entry
+                if (file.isEntry) {
+                    entryFile.addImport({ relative: Path.join(copyToPath, file.fileName) });
+                }
+                
             } else {
                 FS.copyFileSync(from, to)
             }
         }
         
-        // Patch meteor entry
-        entryFile.addImport({ relative: Path.join(copyToPath, entryAsset.fileName) });
         this.tempAssetDir[target] = copyToPath;
         
         return {
-            entryAsset,
+            entryAssets,
             targetDir: copyToPath,
             files,
         };
