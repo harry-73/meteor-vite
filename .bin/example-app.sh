@@ -50,7 +50,7 @@ start:production() {
   local PRODUCTION_SERVER="$this production:app $app"
   local MONGO_SERVER="$this production:mongo $app"
 
-  concurrently --names "PROD,DEV" "$PRODUCTION_SERVER" "$MONGO_SERVER"
+  concurrently --names "PROD,DEV" --prefixColors "cyan,dim" "$PRODUCTION_SERVER" "$MONGO_SERVER"
 }
 
 cleanOutput() {
