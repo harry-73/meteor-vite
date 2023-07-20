@@ -1,6 +1,6 @@
 import Path from 'path';
 import { RollupOutput } from 'rollup';
-import { build, PluginOption, resolveConfig } from 'vite';
+import { build, LibraryOptions, PluginOption, resolveConfig } from 'vite';
 import { MeteorViteConfig } from '../../vite/MeteorViteConfig';
 import { MeteorStubs } from '../../vite';
 import MeteorVitePackage from '../../../package.json';
@@ -9,7 +9,7 @@ import { PluginSettings, ProjectJson } from '../../vite/plugin/MeteorStubs';
 import CreateIPCInterface, { IPCReply } from './IPC/interface';
 
 import { resolveConfigFilePath } from './utils/ConfigParser';
-
+export type MeteorViteBuildTarget = 'client' | 'server';
 interface BuildOptions {
     viteOutDir: string;
     meteor: PluginSettings['meteor'];
@@ -67,17 +67,17 @@ export default CreateIPCInterface({
                 viteOutDir,
                 viteConfig,
                 plugins,
-                entry: viteConfig.meteor?.clientEntry || '',
+                buildTarget: 'client',
             }),
             server: undefined,
         }
         
-        if (viteConfig.meteor?.serverEntry) {
+        if (viteConfig.meteor?.serverEntry || viteConfig.meteor?.viteMode === 'ssr') {
             outputs.server = await runBuild({
                 viteOutDir,
                 viteConfig,
                 plugins,
-                entry: viteConfig.meteor.serverEntry,
+                buildTarget: 'server',
             });
         }
         
@@ -96,21 +96,30 @@ export default CreateIPCInterface({
 })
 
 
-async function runBuild({ viteConfig, viteOutDir, plugins, entry }: {
+async function runBuild({ viteConfig, viteOutDir, plugins, buildTarget }: {
     viteConfig: MeteorViteConfig,
     viteOutDir: string;
     plugins: PluginOption[],
-    entry: string;
+    buildTarget: MeteorViteBuildTarget;
 }): Promise<BuildOutput> {
     let outDir = viteConfig.build.outDir;
+    let ssr = viteConfig.build.ssr;
+    const entry = buildTarget === 'server'
+                  ? viteConfig.meteor?.serverEntry
+                  : viteConfig.meteor?.clientEntry;
     
     if (!entry) {
-        throw new Error(`You need to specify an entrypoint in your Vite config! See: ${MeteorVitePackage.homepage}`);
+        throw new Error(`You need to specify a ${buildTarget} entrypoint in your Vite config! See: ${MeteorVitePackage.homepage}`);
+    }
+    
+    if (!ssr && buildTarget === 'server') {
+        ssr = entry;
     }
     
     const results = await build({
         configFile: viteConfig.configFile,
         build: {
+            ssr,
             lib: {
                 entry,
                 formats: ['es'],
