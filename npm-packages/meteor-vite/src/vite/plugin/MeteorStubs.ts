@@ -166,6 +166,7 @@ export type ProjectJson = {
     meteor: {
         mainModule: {
             client: string;
+            server?: string;
         },
         viteConfig?: string;
         
