@@ -19,35 +19,35 @@ export default class BuildResult {
     }
     
     public copyToProject(details: { projectPath: string }) {
-        const { client: clientOutput, server: serverOutput } = this.payload.outputs || {};
-        
-        if (!clientOutput) {
-            throw new Error('Vite client build payload is empty!')
-        }
+        const client = this.processOutput({
+            copyToPath: Path.join(details.projectPath, 'client', 'vite'),
+            target: 'client',
+        });
         
         let server: ReturnType<typeof this.processOutput> | undefined;
         
-        const client = this.processOutput({
-            files: clientOutput,
-            copyToPath: Path.join(details.projectPath, 'client', 'vite'),
-            entryFile: this.entryFile.client,
-        })
-        
-        if (serverOutput?.length) {
-            if (!this.entryFile.server) {
-                throw new Error('No entrypoint detected for Meteor server!');
-            }
+        if (this.payload.outputs?.server?.length) {
             server = this.processOutput({
-                files: serverOutput,
                 copyToPath: Path.join(details.projectPath, 'server', 'vite'),
-                entryFile: this.entryFile.server
+                target: 'server',
             });
         }
         
         return { client, server };
     }
     
-    protected processOutput({ copyToPath, files, entryFile }: { copyToPath: string, files: BuildOutput, entryFile: EntryFile }) {
+    protected processOutput({ copyToPath, target }: { copyToPath: string, target: 'server' | 'client' }) {
+        const entryFile = this.entryFile[target];
+        const files = this.payload?.outputs?.[target];
+        
+        if (!files) {
+            throw new Error(`No build output emitted for Vite ${target} build!`);
+        }
+        
+        if (!entryFile) {
+            throw new Error(`Unable to resolve Meteor mainModule for ${target}! Did you remember to specify one in your package.json?`)
+        }
+        
         const entryAsset = files.find(file => file.fileName === 'meteor-entry.js' && file.type === 'chunk');
         
         if (!entryAsset) {
