@@ -8,6 +8,11 @@ interface Entry {
     path: string; // meteor.mainModule.[client|server] path
 }
 
+export type EntryFiles = {
+    server?: EntryFile,
+    client: EntryFile,
+}
+
 export default class EntryFile {
     
     public readonly relativePath: string;
@@ -38,8 +43,8 @@ export default class EntryFile {
         
         return {
             client: new EntryFile({ type: 'client', path: client }),
-            server: server && new EntryFile({ type: 'server', path: server }),
-        }
+            server: server ? new EntryFile({ type: 'server', path: server }) : undefined
+        } satisfies EntryFiles;
     }
     
     /**
