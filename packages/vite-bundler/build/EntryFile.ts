@@ -4,10 +4,10 @@ import { cwd } from '../workers';
 
 export default class EntryFile {
     
-    public relativePath: string;
-    public absolutePath;
+    public readonly relativePath: string;
+    public readonly absolutePath;
+    public readonly type: 'server' | 'client';
     public originalContent?: string;
-    public type: 'server' | 'client';
     
     /**
      * Path to the current project's entrypoint for either the server or client.
