@@ -157,7 +157,7 @@ try {
   console.log(pc.green(`⚡️ Build successful (${Math.round((endTime - startTime) * 100) / 100}ms)`))
 
   const assets = buildResult.copyToProject({
-    projectPath: cwd
+    projectRoot: cwd
   });
 
 

@@ -19,9 +19,9 @@ export default class BuildResult {
         this.entryFile = build.entryFile;
     }
     
-    public copyToProject(details: { projectPath: string }) {
+    public copyToProject(details: { projectRoot: string }) {
         const client = this.processOutput({
-            copyToPath: Path.join(details.projectPath, 'client', 'vite'),
+            copyToPath: Path.join(details.projectRoot, 'client', 'vite'),
             target: 'client',
         });
         
@@ -29,7 +29,7 @@ export default class BuildResult {
         
         if (this.payload.outputs?.server?.length) {
             server = this.processOutput({
-                copyToPath: Path.join(details.projectPath, 'server', 'vite'),
+                copyToPath: Path.join(details.projectRoot, 'server', 'vite'),
                 target: 'server',
             });
         }
