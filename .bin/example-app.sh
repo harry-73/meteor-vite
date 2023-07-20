@@ -17,11 +17,12 @@ install() {
 }
 
 build() {
+    (link) || exit 1
+    (cleanOutput) || exit 1
+
     ## Disable file watcher for meteor-vite npm package to prevent builds from hanging indefinitely
     METEOR_VITE_TSUP_BUILD_WATCHER="false"
 
-    (link)
-    (cleanOutput)
     cd "$APP_DIR" || exit 1
     meteor build "$BUILD_TARGET" --directory
 }
@@ -42,7 +43,8 @@ start() {
 
 # Start an already built production server
 start:production() {
-  (production:install)
+  (production:install) || exit 1
+
   local PRODUCTION_SERVER="$this production:app $app"
   local MONGO_SERVER="$this production:mongo $app"
 
@@ -52,6 +54,7 @@ start:production() {
 # Build then start production server
 launch:production() {
   (build) || exit 1
+
   start:production
 }
 
