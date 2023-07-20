@@ -187,7 +187,6 @@ try {
   }
 
   // Patch meteor entry
-  const originalEntryContent = fs.readFileSync(meteorEntry, 'utf8')
   if (payload.build.target === 'meteor') {
     entryFile.client.addImport({ relative: path.join(viteOutSrcDir, entryAsset.fileName) });
   }
