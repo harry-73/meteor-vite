@@ -40,12 +40,19 @@ start() {
   meteor npm start
 }
 
+# Start an already built production server
 start:production() {
   (production:install)
   local PRODUCTION_SERVER="$this production:app $app"
   local MONGO_SERVER="$this production:mongo $app"
 
   concurrently --names "PROD,DEV" "$PRODUCTION_SERVER" "$MONGO_SERVER"
+}
+
+# Build then start production server
+launch:production() {
+  (build) || exit 1
+  start:production
 }
 
 production:install() {
