@@ -115,7 +115,7 @@ export default class EntryFile {
 /**
  * Find the vite:bundler auto-import notice block to add more imports within it.
  *
- * {@link https://regex101.com/r/shKDPE/1}
+ * {@link https://regex101.com/r/Twf7Md/1
  * @type {RegExp}
  */
-const REGEX_AUTO_IMPORT_BLOCK = /(?<startBlock>\*-\*\/[\r\n\s]+)(?<imports>(?:.*[\r\n])*)(?<endBlock>[\s\r\n]*\/\*\* End of vite[\-:]bundler production-imports \*\*\/)/
+const REGEX_AUTO_IMPORT_BLOCK = /(?<startBlock>[\s\r\n\w\W]+\*-\*\/[\r\n\s]+)(?<imports>(?:.*[\r\n])*)(?<endBlock>[\s\r\n]*\/\*\* End of vite[\-:]bundler production-imports \*\*\/)/
