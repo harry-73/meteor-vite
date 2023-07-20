@@ -14,8 +14,8 @@
   },
   "dependencies": {
     "@babel/runtime": "^7.17.9",
-    "vite-plugin-ssr": "^0.4.133",
     "meteor-node-stubs": "^1.2.1",
+    "vite-plugin-ssr": "^0.4.133",
     "vue": "^3.3.4"
   },
   "devDependencies": {
