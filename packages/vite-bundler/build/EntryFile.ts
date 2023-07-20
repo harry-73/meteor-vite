@@ -50,15 +50,18 @@ export default class EntryFile {
     /**
      * Patch the current file with an import string to assist the Meteor bundler with Vite-built modules.
      */
-    public addImport(importString: { relative: string }) {
-        const importPath = Path.relative(
-            Path.dirname(this.relativePath),
-            importString.relative,
-        )
+    public addImports(details: { imports: string[] }) {
+        const importList = details.imports.map((importString) => {
+            const resolved = Path.relative(
+                Path.dirname(this.relativePath),
+                importString,
+            )
+            return `./${resolved}`;
+        })
         
         FS.writeFileSync(this.absolutePath, this.importTemplate({
             content: this.originalContent,
-            importList: [JSON.stringify(`./${importPath}`)],
+            importList,
         }), 'utf8');
     }
     

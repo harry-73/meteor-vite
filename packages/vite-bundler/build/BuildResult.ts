@@ -93,9 +93,7 @@ export default class BuildResult {
                 })
                 FS.writeFileSync(to, transpiled.code, 'utf8')
                 
-                // Patch meteor entry
                 if (file.isEntry) {
-                    entryFile.addImport({ relative: Path.join(targetDirectory, file.fileName) });
                     entryAssets.push(file);
                 }
                 
@@ -109,6 +107,11 @@ export default class BuildResult {
         if (!entryAssets.length) {
             throw new Error(`No entry chunks found in Vite ${buildTarget} build result!`);
         }
+        
+        // Patch meteor entry
+        entryFile.addImports({
+            imports: entryAssets.map((asset) => Path.join(targetDirectory, asset.fileName))
+        });
         
         const columnWidth = 80;
         console.log(pc.bgCyan(`./${entryFile.relativePath}`));
