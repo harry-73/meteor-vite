@@ -1,13 +1,14 @@
-import { BuildOutput, BuildPayload } from '../../../npm-packages/meteor-vite/src/bin/worker/build-for-production';
+import { BuildPayload } from '../../../npm-packages/meteor-vite/src/bin/worker/build-for-production';
 import Path from 'path';
 import FS from 'fs-extra';
 import { getTempDir } from '../workers';
-import EntryFile, { EntryFiles } from './EntryFile';
+import { EntryFiles } from './EntryFile';
 const tempDir = getTempDir();
 
 export default class BuildResult {
     protected readonly payload: BuildPayload;
     protected readonly entryFile: EntryFiles;
+    protected readonly tempAssetDir: { server?: string, client?: string } = {}
     
     constructor(build: { payload: BuildPayload, entryFile: EntryFiles }) {
         if (!build.payload.success) {
@@ -34,6 +35,20 @@ export default class BuildResult {
         }
         
         return { client, server };
+    }
+    
+    public cleanupCopiedFiles() {
+        const { server, client } = this.tempAssetDir;
+        
+        if (server) {
+            FS.removeSync(server);
+        }
+        if (client) {
+            FS.removeSync(client);
+        }
+        
+        this.entryFile.client.cleanup();
+        this.entryFile.server?.cleanup();
     }
     
     protected processOutput({ copyToPath, target }: { copyToPath: string, target: 'server' | 'client' }) {
@@ -83,6 +98,7 @@ export default class BuildResult {
         
         // Patch meteor entry
         entryFile.addImport({ relative: Path.join(copyToPath, entryAsset.fileName) });
+        this.tempAssetDir[target] = copyToPath;
         
         return {
             entryAsset,

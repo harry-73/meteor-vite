@@ -194,10 +194,7 @@ try {
     }
 
     afterLink () {
-      fs.removeSync(assets.client.targetDir);
-      fs.removeSync(assets.server.targetDir);
-      entryFile.client.cleanup();
-      entryFile.server.cleanup();
+      buildResult.cleanupCopiedFiles()
     }
   }
 
