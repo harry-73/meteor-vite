@@ -98,6 +98,9 @@ async function runBuild({ viteConfig, viteOutDir, plugins, buildTarget }: {
             },
             outDir: viteOutDir,
             minify: false,
+            rollupOptions: {
+                external: [/^meteor\//],
+            }
         },
         plugins: [
             // Get fully resolved config to feed any potential changes back to the Meteor compiler.
