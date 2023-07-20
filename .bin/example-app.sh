@@ -36,14 +36,14 @@ build() {
     meteor build "$BUILD_TARGET" --directory
 }
 
-# Build then start production server
-launch:production() {
+# Build then start a production app
+launch() {
   (build) || exit 1
 
   start:production
 }
 
-# Start an already built production server
+# Start an already built production app
 start:production() {
   (production:install) || exit 1
 
