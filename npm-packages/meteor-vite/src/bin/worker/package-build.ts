@@ -15,6 +15,7 @@ export default CreateIPCInterface({
             stdio: 'inherit',
             cwd: npmPackagePath,
             env: {
+                ...process.env,
                 FORCE_COLOR: '3',
             },
         });
