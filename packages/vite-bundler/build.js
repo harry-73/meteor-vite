@@ -164,13 +164,6 @@ try {
   class Compiler {
     processFilesForTarget (files) {
       files.forEach(file => {
-        if (payload.build.target !== 'meteor') {
-          file.addAsset({
-            path: file.getPathInPackage(),
-            data: file.getContentsAsBuffer(),
-          })
-          return;
-        }
         switch (path.extname(file.getBasename())) {
           case '.js':
             file.addJavaScript({
