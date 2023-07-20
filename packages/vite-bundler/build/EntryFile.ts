@@ -19,6 +19,10 @@ export default class EntryFile {
      * Path to the current project's entrypoint for either the server or client.
      */
     constructor(entry: Entry) {
+        if (!FS.existsSync(entry.path)) {
+            throw new Meteor.Error(`Unable to locate Meteor ${entry.type} mainModule in ${entry.path}`);
+        }
+        
         this.type = entry.type;
         this.relativePath = Path.relative(cwd, entry.path);
         this.absolutePath = Path.join(cwd, entry.path);
@@ -32,16 +36,9 @@ export default class EntryFile {
             throw new Meteor.Error('You need to specify a Meteor client mainModule in your package.json!');
         }
         
-        if (server) {
-            this.validate({ type: 'server', path: server });
-        }
-        
-        this.validate({ type: 'client', path: client });
-    }
-    
-    protected static validate(entry: Entry) {
-        if (!FS.existsSync(entry.path)) {
-            throw new Meteor.Error(`Unable to locate Meteor ${entry.type} mainModule in ${entry.path}`);
+        return {
+            client: new EntryFile({ type: 'client', path: client }),
+            server: server && new EntryFile({ type: 'server', path: server }),
         }
     }
     
