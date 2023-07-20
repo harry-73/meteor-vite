@@ -17,6 +17,7 @@ Package.registerBuildPlugin({
   sources: [
     'build.js',
     'workers.ts',
+    'build/EntryFile.ts',
   ],
   npmDependencies: {
     execa: '6.1.0',
