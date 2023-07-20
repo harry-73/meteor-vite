@@ -19,6 +19,8 @@
     "version": "npm run version:vite-bundler && changeset version",
     "release": "npm run publish:vite-bundler && changeset publish",
 
+    "launch": ".bin/example-app.sh launch",
+
     "install:package": "cd npm-packages/meteor-vite && meteor npm install",
     "install:vue": ".bin/example-app.sh install vue",
     "install:vue-ssr": ".bin/example-app.sh install vue-ssr",
