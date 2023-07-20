@@ -1,6 +1,5 @@
 import { BuildOutput, BuildPayload } from '../../../npm-packages/meteor-vite/src/bin/worker/build-for-production';
 import Path from 'path';
-// @ts-ignore
 import FS from 'fs-extra';
 import { getTempDir } from '../workers';
 import EntryFile, { EntryFiles } from './EntryFile';
