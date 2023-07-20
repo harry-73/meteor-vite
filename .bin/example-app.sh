@@ -41,14 +41,24 @@ start() {
 }
 
 start:production() {
-  local PRODUCTION_SERVER="$this _start:production-server $app"
-  local MONGO_SERVER="$this start $app" # Just using the meteor dev server for it's reusable mongo server
+  (production:install)
+  local PRODUCTION_SERVER="$this production:app $app"
+  local MONGO_SERVER="$this production:mongo $app"
+
   concurrently --names "PROD,DEV" "$PRODUCTION_SERVER" "$MONGO_SERVER"
 }
 
-_start:production-server() {
+production:install() {
+   cd "$BUILD_TARGET/bundle/programs/server" || exit 1
+   meteor npm install
+}
+
+production:mongo() {
+  start # Just using the meteor dev server for it's reusable mongo server
+}
+
+production:app() {
   cd "$BUILD_TARGET/bundle" || exit 1;
-  (cd "programs/server" && meteor npm install)
 
   export PORT=4040
   export ROOT_URL=http://localhost:4040
