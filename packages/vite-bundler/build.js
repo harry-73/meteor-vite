@@ -155,10 +155,15 @@ try {
 
   endTime = performance.now()
   console.log(pc.green(`⚡️ Build successful (${Math.round((endTime - startTime) * 100) / 100}ms)`))
+  console.log(pc.blue(`⚡️ Preparing build for the Meteor compiler...`))
+  startTime = performance.now();
 
   const assets = buildResult.copyToProject({
     projectRoot: cwd
   });
+
+  endTime = performance.now()
+  console.log(pc.green(`⚡️ Build ready (${Math.round((endTime - startTime) * 100) / 100}ms)`))
 
 
   class Compiler {
