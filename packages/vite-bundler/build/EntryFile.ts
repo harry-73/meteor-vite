@@ -22,7 +22,7 @@ export default class EntryFile {
      * Patch the current file with an import string to assist the Meteor bundler with Vite-built modules.
      * @param {string} importPath
      */
-    addImport(importPath: string) {
+    public addImport(importPath: string) {
         this.originalContent = FS.readFileSync(this.absolutePath, 'utf8');
         FS.writeFileSync(
             this.absolutePath,
@@ -34,7 +34,7 @@ export default class EntryFile {
     /**
      * Revert entrypoint back to the state it was before we modified it.
      */
-    cleanup() {
+    public cleanup() {
         if (!this.originalContent) {
             throw new Error(`Unable to restore entrypoint to it's original state`);
         }
