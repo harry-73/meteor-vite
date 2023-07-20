@@ -1,22 +1,48 @@
 import Path from 'path';
 import FS from 'fs';
+import type { ProjectJson } from '../../../npm-packages/meteor-vite/src/vite/plugin/MeteorStubs';
 import { cwd } from '../workers';
+
+interface Entry {
+    type: 'server' | 'client';
+    path: string; // meteor.mainModule.[client|server] path
+}
 
 export default class EntryFile {
     
     public readonly relativePath: string;
     public readonly absolutePath: string;
     public readonly originalContent: string;
-    public readonly type: 'server' | 'client';
+    public readonly type: Entry['type'];
     
     /**
      * Path to the current project's entrypoint for either the server or client.
      */
-    constructor(file: { type: EntryFile['type'], path: string }) {
-        this.type = file.type;
-        this.relativePath = Path.relative(cwd, file.path);
-        this.absolutePath = Path.join(cwd, file.path);
+    constructor(entry: Entry) {
+        this.type = entry.type;
+        this.relativePath = Path.relative(cwd, entry.path);
+        this.absolutePath = Path.join(cwd, entry.path);
         this.originalContent = FS.readFileSync(this.absolutePath, 'utf8');
+    }
+    
+    public static retrieve(packageJson: ProjectJson) {
+        const { client, server } = packageJson.meteor.mainModule;
+        
+        if (!client) {
+            throw new Meteor.Error('You need to specify a Meteor client mainModule in your package.json!');
+        }
+        
+        if (server) {
+            this.validate({ type: 'server', path: server });
+        }
+        
+        this.validate({ type: 'client', path: client });
+    }
+    
+    protected static validate(entry: Entry) {
+        if (!FS.existsSync(entry.path)) {
+            throw new Meteor.Error(`Unable to locate Meteor ${entry.type} mainModule in ${entry.path}`);
+        }
     }
     
     /**
