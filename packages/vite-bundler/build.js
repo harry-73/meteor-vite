@@ -193,7 +193,7 @@ try {
 
   Plugin.registerCompiler({
     extensions: [],
-    filenames: [assets.server.files, assets.client.files].flat().map((file) => file.fileName),
+    filenames: assets.map((file) => file.fileName),
   }, () => new Compiler())
 } catch (e) {
   throw e

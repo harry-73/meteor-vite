@@ -34,7 +34,10 @@ export default class BuildResult {
             });
         }
         
-        return { client, server };
+        return [
+            client.files,
+            server?.files || [],
+        ].flat();
     }
     
     public cleanupCopiedFiles() {
