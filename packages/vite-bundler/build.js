@@ -4,6 +4,7 @@ import fs from 'fs-extra'
 import { execaSync } from 'execa'
 import pc from 'picocolors'
 import { createWorkerFork, cwd, getProjectPackageJson, getTempDir } from './workers';
+import EntryFile from './build/EntryFile';
 
 if (process.env.NODE_ENV !== 'production') return
 
@@ -11,7 +12,7 @@ if (process.env.NODE_ENV !== 'production') return
 if (process.env.VITE_METEOR_DISABLED) return
 
 const pkg = getProjectPackageJson();
-const meteorMainModule = pkg.meteor?.mainModule?.client
+const entryFile = EntryFile.retrieve(pkg);
 
 // Meteor packages to omit or replace the temporary build.
 // Useful for other build-time packages that may conflict with Meteor-Vite's temporary build.
@@ -20,9 +21,6 @@ const replaceMeteorPackages = [
   { startsWith: 'refapp:meteor-typescript', replaceWith: 'typescript' },
   ...pkg?.meteorVite?.replacePackages || []
 ]
-if (!meteorMainModule) {
-  throw new Error('No meteor main module found, please add meteor.mainModule.client to your package.json')
-}
 
 const tempDir = getTempDir();
 const tempMeteorProject = path.resolve(tempDir, 'input', 'meteor')
@@ -39,7 +37,7 @@ const filesToCopy = [
   path.join('.meteor', 'release'),
   path.join('.meteor', 'versions'),
   'package.json',
-  meteorMainModule,
+  entryFile.client.relativePath,
 ]
 
 const optionalFiles = [
@@ -99,7 +97,7 @@ try {
   }
   // Only keep meteor package imports to enable lazy packages
   {
-    const file = path.join(tempMeteorProject, meteorMainModule)
+    const file = path.join(tempMeteorProject, entryFile.client.relativePath)
     const lines = fs.readFileSync(file, 'utf8').split('\n')
     const imports = lines.filter(line => line.startsWith('import') && line.includes('meteor/'))
     fs.writeFileSync(file, imports.join('\n'))
@@ -189,10 +187,9 @@ try {
   }
 
   // Patch meteor entry
-  const meteorEntry = path.join(cwd, meteorMainModule)
   const originalEntryContent = fs.readFileSync(meteorEntry, 'utf8')
   if (payload.build.target === 'meteor') {
-    fs.writeFileSync(meteorEntry, `import ${JSON.stringify(`./${path.relative(path.dirname(meteorEntry), path.join(viteOutSrcDir, entryAsset.fileName))}`)}\n${originalEntryContent}`, 'utf8')
+    entryFile.client.addImport({ relative: path.join(viteOutSrcDir, entryAsset.fileName) });
   }
 
   class Compiler {
@@ -229,7 +226,7 @@ try {
 
     afterLink () {
       fs.removeSync(viteOutSrcDir)
-      fs.writeFileSync(meteorEntry, originalEntryContent, 'utf8')
+      entryFile.client.cleanup();
     }
   }
 
