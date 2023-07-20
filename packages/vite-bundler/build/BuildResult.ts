@@ -24,6 +24,8 @@ export default class BuildResult {
     }
     
     public copyToProject(details: { projectRoot: string }) {
+        console.log(pc.blue(`⚡️ Appending Vite entry-points to Meteor entries`));
+        
         const targetDirectory = Path.join(details.projectRoot, 'vite');
         
         const client = this.processOutput({ targetDirectory, buildTarget: 'client' });
@@ -108,10 +110,14 @@ export default class BuildResult {
             throw new Error(`No entry chunks found in Vite ${buildTarget} build result!`);
         }
         
-        console.log(pc.yellow(`⚡️ Added Vite entry-points to Meteor ${pc.green(buildTarget)} entry`));
+        const columnWidth = 80;
         entryAssets.forEach((asset) => {
             const dirname = Path.dirname(asset.fileName);
-            console.log(`${pc.dim(`./${dirname}/`)}${pc.cyan(Path.basename(asset.fileName))}`)
+            const filename = Path.basename(asset.fileName);
+            const addSpaceCount = columnWidth - (dirname.length + filename.length)
+            const whitespace = ' '.repeat(addSpaceCount > 1 ? addSpaceCount : 1)
+            const targetId = buildTarget === 'client' ? pc.dim(buildTarget) : pc.yellow(buildTarget);
+            console.log(`${pc.dim(`./${dirname}/`)}${pc.cyan(filename)}${whitespace}${pc.dim('| ')}${targetId}`);
         });
         
         return {
