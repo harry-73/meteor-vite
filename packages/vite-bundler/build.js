@@ -5,6 +5,7 @@ import { execaSync } from 'execa'
 import pc from 'picocolors'
 import { createWorkerFork, cwd, getProjectPackageJson, getTempDir } from './workers';
 import EntryFile from './build/EntryFile';
+import Path from 'path';
 
 if (process.env.NODE_ENV !== 'production') return
 
@@ -163,10 +164,10 @@ try {
   fs.ensureDirSync(viteOutSrcDir)
   fs.emptyDirSync(viteOutSrcDir)
 
-  const files = payload.output.map(o => o.fileName);
-  for (const file of files) {
-    const from = path.join(payload.build.outDir, file)
-    const to = path.join(viteOutSrcDir, file)
+  for (const file of payload.output) {
+    const from = file.absolutePath;
+    const to = path.join(viteOutSrcDir, file.fileName);
+
     fs.ensureDirSync(path.dirname(to))
 
     if (path.extname(from) === '.js') {
@@ -231,7 +232,7 @@ try {
 
   Plugin.registerCompiler({
     extensions: [],
-    filenames: files.map(file => path.basename(file)),
+    filenames: payload.output.map(file => path.basename(file.fileName)),
   }, () => new Compiler())
 } catch (e) {
   throw e

@@ -1,3 +1,4 @@
+import Path from 'path';
 import { RollupOutput } from 'rollup';
 import { build, PluginOption, resolveConfig } from 'vite';
 import { MeteorViteConfig } from '../../vite/MeteorViteConfig';
@@ -21,9 +22,6 @@ type Replies = IPCReply<{
         payload: {
             success: boolean,
             meteorViteConfig: any,
-            build: {
-                outDir: string;
-            }
             output?: BuildOutput;
         };
     }
@@ -32,7 +30,8 @@ type Replies = IPCReply<{
 type BuildOutput = {
     name?: string,
     type: string,
-    fileName: string,
+    absolutePath: string;
+    fileName: string;
 }[];
 
 export default CreateIPCInterface({
@@ -48,7 +47,7 @@ export default CreateIPCInterface({
             }
         })
         
-        let viteConfig: MeteorViteConfig = await resolveConfig({
+        const viteConfig: MeteorViteConfig = await resolveConfig({
             configFile: resolveConfigFilePath(packageJson),
         }, 'build');
         
@@ -65,9 +64,6 @@ export default CreateIPCInterface({
                 payload: {
                     success: true,
                     meteorViteConfig: viteConfig.meteor,
-                    build: {
-                        outDir: viteConfig.build.outDir,
-                    },
                     output: await runBuild({
                         viteOutDir,
                         viteConfig,
@@ -84,7 +80,7 @@ async function runBuild({ viteConfig, viteOutDir, plugins }: {
     viteConfig: MeteorViteConfig,
     viteOutDir: string;
     plugins: PluginOption[],
-}) {
+}): Promise<BuildOutput> {
     let outDir = viteConfig.build.outDir;
     
     if (!viteConfig.meteor?.clientEntry) {
@@ -135,10 +131,11 @@ async function runBuild({ viteConfig, viteOutDir, plugins }: {
     
     validateOutput(result);
     
-    return result.output.map(o => ({
-        name: o.name,
-        type: o.type,
-        fileName: o.fileName,
+    return result.output.map(asset => ({
+        name: asset.name,
+        type: asset.type,
+        fileName: asset.fileName,
+        absolutePath: Path.join(outDir, asset.fileName)
     }))
 }
 
