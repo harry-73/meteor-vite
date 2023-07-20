@@ -5,9 +5,9 @@ import { cwd } from '../workers';
 export default class EntryFile {
     
     public readonly relativePath: string;
-    public readonly absolutePath;
+    public readonly absolutePath: string;
+    public readonly originalContent: string;
     public readonly type: 'server' | 'client';
-    public originalContent?: string;
     
     /**
      * Path to the current project's entrypoint for either the server or client.
@@ -16,6 +16,7 @@ export default class EntryFile {
         this.type = file.type;
         this.relativePath = Path.relative(cwd, file.path);
         this.absolutePath = Path.join(cwd, file.path);
+        this.originalContent = FS.readFileSync(this.absolutePath, 'utf8');
     }
     
     /**
@@ -23,7 +24,6 @@ export default class EntryFile {
      * @param {string} importPath
      */
     public addImport(importPath: string) {
-        this.originalContent = FS.readFileSync(this.absolutePath, 'utf8');
         FS.writeFileSync(
             this.absolutePath,
             `import ${JSON.stringify(importPath)}\n${this.originalContent}`,
