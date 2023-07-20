@@ -49,6 +49,7 @@ export default class EntryFile {
     
     /**
      * Patch the current file with an import string to assist the Meteor bundler with Vite-built modules.
+     * Todo: Do a cleanup on construction to keep the entry files tidy when multiple builds are done after another
      */
     public addImports(details: { imports: string[] }) {
         const importList = details.imports.map((importString) => {
