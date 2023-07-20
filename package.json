@@ -20,6 +20,7 @@
     "release": "npm run publish:vite-bundler && changeset publish",
 
     "launch": ".bin/example-app.sh launch",
+    "start:production": ".bin/example-app.sh start:production",
 
     "install:package": "cd npm-packages/meteor-vite && meteor npm install",
     "install:vue": ".bin/example-app.sh install vue",
