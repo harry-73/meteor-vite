@@ -97,7 +97,7 @@ export default class EntryFile {
  * module load-order and lazily loaded packages.
  *
  * [THESE IMPORTS SHOULD BE REMOVED] - Do not commit them into version control.
- **>/
+ *-*/
  ${imports}
  /** End of vite-bundler production-imports **/
  
@@ -112,4 +112,4 @@ export default class EntryFile {
  * {@link https://regex101.com/r/shKDPE/1}
  * @type {RegExp}
  */
-const REGEX_AUTO_IMPORT_BLOCK = /(?<startBlock>\*\*>\/[\r\n\s]+)(?<imports>(?:.*[\r\n])*)(?<endBlock>[\s\r\n]*\/\*\* End of vite[\-:]bundler production-imports \*\*\/)/
+const REGEX_AUTO_IMPORT_BLOCK = /(?<startBlock>\*-\*\/[\r\n\s]+)(?<imports>(?:.*[\r\n])*)(?<endBlock>[\s\r\n]*\/\*\* End of vite[\-:]bundler production-imports \*\*\/)/
