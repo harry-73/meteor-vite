@@ -70,12 +70,6 @@ export default class BuildResult {
             throw new Error(`Unable to resolve Meteor mainModule for ${target}! Did you remember to specify one in your package.json?`)
         }
         
-        const entryAsset = files.find(file => file.fileName === 'meteor-entry.js' && file.type === 'chunk');
-        
-        if (!entryAsset) {
-            throw new Error('No meteor-entry chunk found')
-        }
-        
         // Copy the assets to the Meteor auto-imported sources
         FS.ensureDirSync(copyToPath)
         FS.emptyDirSync(copyToPath)
@@ -110,6 +104,10 @@ export default class BuildResult {
         }
         
         this.tempAssetDir[target] = copyToPath;
+        
+        if (!entryAssets.length) {
+            throw new Error(`No entry chunks found in Vite ${target} build result!`);
+        }
         
         return {
             entryAssets,
