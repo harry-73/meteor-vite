@@ -23,18 +23,14 @@ export default class BuildResult {
     }
     
     public copyToProject(details: { projectRoot: string }) {
-        const client = this.processOutput({
-            copyToPath: Path.join(details.projectRoot, 'client', 'vite'),
-            target: 'client',
-        });
+        const targetDirectory = Path.join(details.projectRoot, 'vite');
+        
+        const client = this.processOutput({ targetDirectory, buildTarget: 'client' });
         
         let server: ReturnType<typeof this.processOutput> | undefined;
         
         if (this.payload.outputs?.server?.length) {
-            server = this.processOutput({
-                copyToPath: Path.join(details.projectRoot, 'server', 'vite'),
-                target: 'server',
-            });
+            server = this.processOutput({ targetDirectory, buildTarget: 'server', });
         }
         
         return [
@@ -57,27 +53,27 @@ export default class BuildResult {
         this.entryFile.server?.cleanup();
     }
     
-    protected processOutput({ copyToPath, target }: { copyToPath: string, target: 'server' | 'client' }) {
-        const entryFile = this.entryFile[target];
-        const files = this.payload?.outputs?.[target];
+    protected processOutput({ targetDirectory, buildTarget }: { targetDirectory: string, buildTarget: 'server' | 'client' }) {
+        const entryFile = this.entryFile[buildTarget];
+        const files = this.payload?.outputs?.[buildTarget];
         const entryAssets: FormattedFileChunk[] = [];
         
         if (!files) {
-            throw new Error(`No build output emitted for Vite ${target} build!`);
+            throw new Error(`No build output emitted for Vite ${buildTarget} build!`);
         }
         
         if (!entryFile) {
-            throw new Error(`Unable to resolve Meteor mainModule for ${target}! Did you remember to specify one in your package.json?`)
+            throw new Error(`Unable to resolve Meteor mainModule for ${buildTarget}! Did you remember to specify one in your package.json?`)
         }
         
         // Copy the assets to the Meteor auto-imported sources
-        FS.ensureDirSync(copyToPath)
-        FS.emptyDirSync(copyToPath)
+        FS.ensureDirSync(targetDirectory)
+        FS.emptyDirSync(targetDirectory)
         
         for (const file of files) {
-            file.fileName = `${target}/${file.fileName}`;
+            file.fileName = `${buildTarget}/${file.fileName}`;
             const from = file.absolutePath;
-            const to = Path.join(copyToPath, file.fileName);
+            const to = Path.join(targetDirectory, file.fileName);
             
             FS.ensureDirSync(Path.dirname(to))
             
@@ -96,7 +92,7 @@ export default class BuildResult {
                 
                 // Patch meteor entry
                 if (file.isEntry) {
-                    entryFile.addImport({ relative: Path.join(copyToPath, file.fileName) });
+                    entryFile.addImport({ relative: Path.join(targetDirectory, file.fileName) });
                     entryAssets.push(file);
                 }
                 
@@ -105,15 +101,15 @@ export default class BuildResult {
             }
         }
         
-        this.tempAssetDir[target] = copyToPath;
+        this.tempAssetDir[buildTarget] = targetDirectory;
         
         if (!entryAssets.length) {
-            throw new Error(`No entry chunks found in Vite ${target} build result!`);
+            throw new Error(`No entry chunks found in Vite ${buildTarget} build result!`);
         }
         
         return {
             entryAssets,
-            targetDir: copyToPath,
+            targetDir: targetDirectory,
             files,
         };
     }
