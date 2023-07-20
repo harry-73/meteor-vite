@@ -3,7 +3,7 @@ import { WebApp } from 'meteor/webapp';
 import { Meteor } from 'meteor/meteor'
 
 if (Meteor.isProduction) {
-    import './vite/server/importBuild.cjs';
+    import '/vite/server/importBuild.cjs';
 }
 
 WebApp.connectHandlers.use('/', async (req, res, next) => {
