@@ -7,6 +7,7 @@ import FS from 'fs-extra';
 import { getTempDir } from '../workers';
 import { EntryFiles } from './EntryFile';
 const tempDir = getTempDir();
+import pc from 'picocolors';
 
 export default class BuildResult {
     protected readonly payload: BuildPayload;
@@ -106,6 +107,12 @@ export default class BuildResult {
         if (!entryAssets.length) {
             throw new Error(`No entry chunks found in Vite ${buildTarget} build result!`);
         }
+        
+        console.log(pc.yellow(`⚡️ Added Vite entry-points to Meteor ${pc.green(buildTarget)} entry`));
+        entryAssets.forEach((asset) => {
+            const dirname = Path.dirname(asset.fileName);
+            console.log(`./${pc.dim(dirname)}/${pc.green(Path.basename(asset.fileName))}`)
+        });
         
         return {
             entryAssets,
