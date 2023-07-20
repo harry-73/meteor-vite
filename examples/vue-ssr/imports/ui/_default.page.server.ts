@@ -5,7 +5,7 @@ import { renderToString as renderToString_ } from '@vue/server-renderer'
 import type { App } from 'vue'
 import { escapeInject, dangerouslySkipEscape } from 'vite-plugin-ssr/server'
 import { createApp } from './ssr-render/App'
-import logoUrl from './logo.svg'
+import logoUrl from './ssr-render/logo.svg'
 import type { PageContextServer } from './Types'
 
 export async function render(pageContext: PageContextServer) {
