@@ -146,7 +146,11 @@ try {
     })
   }))
 
-  const payloadProcessor = new BuildPayloadProcessor(payload, entryFile);
+  const payloadProcessor = new BuildPayloadProcessor({
+    payload,
+    entryFile,
+  });
+
   endTime = performance.now()
   console.log(pc.green(`⚡️ Build successful (${Math.round((endTime - startTime) * 100) / 100}ms)`))
 

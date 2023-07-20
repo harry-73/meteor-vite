@@ -7,10 +7,16 @@ import EntryFile, { EntryFiles } from './EntryFile';
 const tempDir = getTempDir();
 
 export default class BuildPayloadProcessor {
-    constructor(protected readonly payload: BuildPayload, protected readonly entryFiles: EntryFiles) {
-        if (!payload.success) {
+    protected readonly payload: BuildPayload;
+    protected readonly entryFile: EntryFiles;
+    
+    constructor(build: { payload: BuildPayload, entryFile: EntryFiles }) {
+        if (!build.payload.success) {
             throw new Error('Vite build failed')
         }
+        
+        this.payload = build.payload;
+        this.entryFile = build.entryFile;
     }
     
     public copyToProject(details: { projectPath: string }) {
@@ -25,17 +31,17 @@ export default class BuildPayloadProcessor {
         const client = this.processOutput({
             files: clientOutput,
             copyToPath: Path.join(details.projectPath, 'client', 'vite'),
-            entryFile: this.entryFiles.client,
+            entryFile: this.entryFile.client,
         })
         
         if (serverOutput?.length) {
-            if (!this.entryFiles.server) {
+            if (!this.entryFile.server) {
                 throw new Error('No entrypoint detected for Meteor server!');
             }
             server = this.processOutput({
                 files: serverOutput,
                 copyToPath: Path.join(details.projectPath, 'server', 'vite'),
-                entryFile: this.entryFiles.server
+                entryFile: this.entryFile.server
             });
         }
         
