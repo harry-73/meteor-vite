@@ -23,7 +23,7 @@ type Replies = IPCReply<{
     }
 }>
 
-type BuildPayload = {
+export type BuildPayload = {
     success: boolean,
     meteorViteConfig: any,
     outputs?: {
@@ -32,7 +32,7 @@ type BuildPayload = {
     };
 }
 
-type BuildOutput = {
+export type BuildOutput = {
     name?: string,
     type: string,
     absolutePath: string;

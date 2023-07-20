@@ -6,6 +6,7 @@ import pc from 'picocolors'
 import { createWorkerFork, cwd, getProjectPackageJson, getTempDir } from './workers';
 import EntryFile from './build/EntryFile';
 import Path from 'path';
+import { CopyFilesToMeteor } from './build/ProcessBuildPayload';
 
 if (process.env.NODE_ENV !== 'production') return
 
@@ -153,17 +154,11 @@ try {
   console.log(pc.green(`⚡️ Build successful (${Math.round((endTime - startTime) * 100) / 100}ms)`))
 
   // Add assets to Meteor
-  const assets = {
-    client: processOutput({
-      files: payload.output.client,
-      copyToPath: path.join(cwd, 'client', 'vite')
-    }),
-    server: processOutput({
-      files: payload.output.server,
-      copyToPath: path.join(cwd, 'server', 'vite')
-    }),
-  }
-
+  const assets = CopyFilesToMeteor({
+    meteorPath: cwd,
+    entryFiles: entryFile,
+    payload: payload.outputs,
+  });
 
   class Compiler {
     processFilesForTarget (files) {
@@ -215,48 +210,4 @@ try {
   console.log(pc.blue('⚡️ Cleaning up temporary files...'))
   fs.rmSync(tempDir, { recursive: true, force: true });
   console.log(pc.green('⚡️ Cleanup completed'))
-}
-
-function processOutput({ copyToPath, files }) {
-  const entryAsset = files.client.find(o => o.fileName === 'meteor-entry.js' && o.type === 'chunk');
-
-  if (!entryAsset) {
-    throw new Error('No meteor-entry chunk found')
-  }
-
-  // Copy the assets to the Meteor auto-imported sources
-  fs.ensureDirSync(copyToPath)
-  fs.emptyDirSync(copyToPath)
-
-  for (const file of files) {
-    const from = file.absolutePath;
-    const to = path.join(copyToPath, file.fileName);
-
-    fs.ensureDirSync(path.dirname(to))
-
-    if (path.extname(from) === '.js') {
-      // Transpile to Meteor target (Dynamic import support)
-      // @TODO don't use Babel
-      const source = fs.readFileSync(from, 'utf8')
-      const babelOptions = Babel.getDefaultOptions()
-      babelOptions.babelrc = true
-      babelOptions.sourceMaps = true
-      babelOptions.filename = babelOptions.sourceFileName = from
-      const transpiled = Babel.compile(source, babelOptions, {
-        cacheDirectory: path.join(tempDir, '.babel-cache'),
-      })
-      fs.writeFileSync(to, transpiled.code, 'utf8')
-    } else {
-      fs.copyFileSync(from, to)
-    }
-  }
-
-  // Patch meteor entry
-  entryFile.client.addImport({ relative: path.join(copyToPath, entryAsset.fileName) });
-
-  return {
-    entryAsset,
-    targetDir: copyToPath,
-    files,
-  };
 }
