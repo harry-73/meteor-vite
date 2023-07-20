@@ -9,3 +9,11 @@ export async function getViteTempDir(packageJson: ProjectJson) {
     
     return path;
 }
+
+export function resolveConfigFilePath(packageJson: ProjectJson) {
+    if (!packageJson?.meteor?.viteConfig) {
+        return undefined;
+    }
+    
+    return Path.resolve(packageJson.meteor.viteConfig);
+}

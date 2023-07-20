@@ -1,17 +1,16 @@
-import OS from 'os';
 import Path from 'path';
-import { createServer, resolveConfig, ViteDevServer } from 'vite';
+import { createServer, ViteDevServer } from 'vite';
 import Logger from '../../Logger';
 import { MeteorRuntimeConfig } from '../../meteor/InternalTypes';
 import MeteorEvents, { MeteorIPCMessage } from '../../meteor/MeteorEvents';
-import { MeteorViteConfig, MeteorViteMode } from '../../vite/MeteorViteConfig';
 import { MeteorStubs } from '../../vite';
+import { MeteorViteConfig, MeteorViteMode } from '../../vite/MeteorViteConfig';
 import InjectMeteorPrograms from '../../vite/plugin/InjectMeteorPrograms';
 import { PluginSettings, ProjectJson } from '../../vite/plugin/MeteorStubs';
 import { RefreshNeeded } from '../../vite/ViteLoadRequest';
 import CreateIPCInterface, { IPCReply } from './IPC/interface';
 import { onTeardown } from './IPC/teardown';
-import { getViteTempDir } from './utils/ConfigParser';
+import { getViteTempDir, resolveConfigFilePath } from './utils/ConfigParser';
 
 let server: ViteDevServer & { config: MeteorViteConfig };
 
@@ -125,10 +124,3 @@ function sendViteConfig(reply: Replies) {
     })
 }
 
-export function resolveConfigFilePath(packageJson: ProjectJson) {
-    if (!packageJson?.meteor?.viteConfig) {
-        return undefined;
-    }
-    
-    return Path.resolve(packageJson.meteor.viteConfig);
-}

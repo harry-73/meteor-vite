@@ -7,7 +7,8 @@ import MeteorVitePackage from '../../../package.json';
 import InjectMeteorPrograms from '../../vite/plugin/InjectMeteorPrograms';
 import { PluginSettings, ProjectJson } from '../../vite/plugin/MeteorStubs';
 import CreateIPCInterface, { IPCReply } from './IPC/interface';
-import { resolveConfigFilePath } from './dev-server';
+
+import { resolveConfigFilePath } from './utils/ConfigParser';
 
 interface BuildOptions {
     viteOutDir: string;
