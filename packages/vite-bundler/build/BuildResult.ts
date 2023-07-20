@@ -111,7 +111,7 @@ export default class BuildResult {
         console.log(pc.yellow(`⚡️ Added Vite entry-points to Meteor ${pc.green(buildTarget)} entry`));
         entryAssets.forEach((asset) => {
             const dirname = Path.dirname(asset.fileName);
-            console.log(`./${pc.dim(dirname)}/${pc.green(Path.basename(asset.fileName))}`)
+            console.log(`${pc.dim(`./${dirname}/`)}${pc.green(Path.basename(asset.fileName))}`)
         });
         
         return {
