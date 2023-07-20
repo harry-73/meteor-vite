@@ -75,6 +75,7 @@ export default class BuildResult {
         FS.emptyDirSync(copyToPath)
         
         for (const file of files) {
+            file.fileName = `${target}/${file.fileName}`;
             const from = file.absolutePath;
             const to = Path.join(copyToPath, file.fileName);
             
