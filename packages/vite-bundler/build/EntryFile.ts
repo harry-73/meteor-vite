@@ -32,6 +32,7 @@ export default class EntryFile {
         this.relativePath = Path.relative(cwd, entry.path);
         this.absolutePath = Path.join(cwd, entry.path);
         this.originalContent = FS.readFileSync(this.absolutePath, 'utf8');
+        this.originalContent = this.removeOlderTemplates();
     }
     
     public static retrieve(packageJson: ProjectJson) {
@@ -49,7 +50,6 @@ export default class EntryFile {
     
     /**
      * Patch the current file with an import string to assist the Meteor bundler with Vite-built modules.
-     * Todo: Do a cleanup on construction to keep the entry files tidy when multiple builds are done after another
      */
     public addImports(details: { imports: string[] }) {
         const importList = details.imports.map((importString) => {
@@ -75,6 +75,12 @@ export default class EntryFile {
         }
         
         FS.writeFileSync(this.absolutePath, this.originalContent, 'utf-8')
+    }
+    
+    protected removeOlderTemplates() {
+        const content = this.originalContent.replace(REGEX_AUTO_IMPORT_BLOCK, '');
+        FS.writeFileSync(this.absolutePath, content);
+        return content
     }
     
     protected importTemplate({ content, importList }: { content: string, importList: string[] }) {
