@@ -11,11 +11,20 @@ NPM_LINK_TARGET="$PWD/npm-packages/meteor-vite"
 export METEOR_PACKAGE_DIRS="$PWD/packages"
 export METEOR_VITE_TSUP_BUILD_WATCHER="true"
 
+
+# Start a development server
+start() {
+  cd "$APP_DIR" || exit 1
+  meteor npm start
+}
+
+# Install dependencies for dev app
 install() {
   cd "$APP_DIR" || exit 1
   meteor npm i
 }
 
+# Build an example app for production
 build() {
     (link) || exit 1
     (cleanOutput) || exit 1
@@ -27,18 +36,11 @@ build() {
     meteor build "$BUILD_TARGET" --directory
 }
 
-cleanOutput() {
-  rm -rf "$BUILD_TARGET"
-}
+# Build then start production server
+launch:production() {
+  (build) || exit 1
 
-link() {
-  cd "$APP_DIR" || exit 1
-  meteor npm link "$NPM_LINK_TARGET"
-}
-
-start() {
-  cd "$APP_DIR" || exit 1
-  meteor npm start
+  start:production
 }
 
 # Start an already built production server
@@ -51,11 +53,13 @@ start:production() {
   concurrently --names "PROD,DEV" "$PRODUCTION_SERVER" "$MONGO_SERVER"
 }
 
-# Build then start production server
-launch:production() {
-  (build) || exit 1
+cleanOutput() {
+  rm -rf "$BUILD_TARGET"
+}
 
-  start:production
+link() {
+  cd "$APP_DIR" || exit 1
+  meteor npm link "$NPM_LINK_TARGET"
 }
 
 production:install() {
