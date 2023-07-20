@@ -111,13 +111,14 @@ export default class BuildResult {
         }
         
         const columnWidth = 80;
+        console.log(pc.bgCyan(`./${entryFile.relativePath}`));
         entryAssets.forEach((asset) => {
             const dirname = Path.dirname(asset.fileName);
             const filename = Path.basename(asset.fileName);
             const addSpaceCount = columnWidth - (dirname.length + filename.length)
             const whitespace = ' '.repeat(addSpaceCount > 1 ? addSpaceCount : 1)
             const targetId = buildTarget === 'client' ? pc.dim(buildTarget) : pc.yellow(buildTarget);
-            console.log(`${pc.dim(`./${dirname}/`)}${pc.cyan(filename)}${whitespace}${pc.dim('| ')}${targetId}`);
+            console.log(`${pc.dim(`  L ./${dirname}/`)}${pc.cyan(filename)}${whitespace}${pc.dim('| ')}${targetId}`);
         });
         
         return {
