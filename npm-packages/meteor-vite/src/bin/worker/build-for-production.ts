@@ -9,35 +9,7 @@ import { PluginSettings, ProjectJson } from '../../vite/plugin/MeteorStubs';
 import CreateIPCInterface, { IPCReply } from './IPC/interface';
 
 import { resolveConfigFilePath } from './utils/ConfigParser';
-export type MeteorViteBuildTarget = 'client' | 'server';
-interface BuildOptions {
-    viteOutDir: string;
-    meteor: PluginSettings['meteor'];
-    packageJson: ProjectJson;
-}
 
-type Replies = IPCReply<{
-    kind: 'buildResult',
-    data: {
-        payload: BuildPayload;
-    }
-}>
-
-export type BuildPayload = {
-    success: boolean,
-    meteorViteConfig: any,
-    outputs?: {
-        client: BuildOutput;
-        server?: BuildOutput;
-    };
-}
-
-export type BuildOutput = {
-    name?: string,
-    type: string,
-    absolutePath: string;
-    fileName: string;
-}[];
 
 export default CreateIPCInterface({
     async buildForProduction(
@@ -155,20 +127,51 @@ async function runBuild({ viteConfig, viteOutDir, plugins, buildTarget }: {
     
     validateOutput(result);
     
-    function isEntry(asset: OutputChunk | OutputAsset) {
+    return result.output.map(formatOutput(outDir))
+}
+
+function formatOutput(outDir: string) {
+    return (asset: OutputChunk | OutputAsset) => {
+        let isEntry = false;
+        
         if ('isEntry' in asset) {
-            return asset.isEntry;
+            isEntry = asset.isEntry;
         }
         
-        return false;
+        return {
+            name: asset.name,
+            type: asset.type,
+            fileName: asset.fileName,
+            absolutePath: Path.join(outDir, asset.fileName),
+            isEntry,
+        }
     }
-    
-    return result.output.map((asset) => ({
-        name: asset.name,
-        type: asset.type,
-        fileName: asset.fileName,
-        absolutePath: Path.join(outDir, asset.fileName),
-        isEntry: isEntry(asset),
-    }))
 }
+
+export type MeteorViteBuildTarget = 'client' | 'server';
+interface BuildOptions {
+    viteOutDir: string;
+    meteor: PluginSettings['meteor'];
+    packageJson: ProjectJson;
+}
+
+type Replies = IPCReply<{
+    kind: 'buildResult',
+    data: {
+        payload: BuildPayload;
+    }
+}>
+
+export type BuildPayload = {
+    success: boolean,
+    meteorViteConfig: any,
+    outputs?: {
+        client: BuildOutput;
+        server?: BuildOutput;
+    };
+}
+
+type BuiltChunk = ReturnType<ReturnType<typeof formatOutput>>
+
+export type BuildOutput = BuiltChunk[];
 
