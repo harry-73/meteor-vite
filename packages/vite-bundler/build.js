@@ -121,7 +121,7 @@ try {
 
   // Vite
 
-  console.log(pc.blue('⚡️ Building with Vite...'))
+  console.log(pc.blue('⚡️ Building with Vite...\n'))
   startTime = performance.now()
 
   fs.ensureDirSync(path.dirname(viteOutDir))
