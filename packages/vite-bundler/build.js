@@ -6,7 +6,7 @@ import pc from 'picocolors'
 import { createWorkerFork, cwd, getProjectPackageJson, getTempDir } from './workers';
 import EntryFile from './build/EntryFile';
 import Path from 'path';
-import { CopyFilesToMeteor } from './build/ProcessBuildPayload';
+import BuildPayloadProcessor from './build/ProcessBuildPayload';
 
 if (process.env.NODE_ENV !== 'production') return
 
@@ -146,19 +146,14 @@ try {
     })
   }))
 
-  if (!payload.success) {
-    throw new Error('Vite build failed')
-  }
-
+  const payloadProcessor = new BuildPayloadProcessor(payload, entryFile);
   endTime = performance.now()
   console.log(pc.green(`⚡️ Build successful (${Math.round((endTime - startTime) * 100) / 100}ms)`))
 
-  // Add assets to Meteor
-  const assets = CopyFilesToMeteor({
-    meteorPath: cwd,
-    entryFiles: entryFile,
-    payload: payload.outputs,
+  const assets = payloadProcessor.copyToProject({
+    projectPath: cwd
   });
+
 
   class Compiler {
     processFilesForTarget (files) {
