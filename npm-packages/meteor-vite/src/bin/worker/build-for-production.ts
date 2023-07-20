@@ -1,5 +1,5 @@
 import Path from 'path';
-import { RollupOutput } from 'rollup';
+import { OutputAsset, OutputChunk, RollupOutput } from 'rollup';
 import { build, LibraryOptions, PluginOption, resolveConfig } from 'vite';
 import { MeteorViteConfig } from '../../vite/MeteorViteConfig';
 import { MeteorStubs } from '../../vite';
@@ -124,12 +124,6 @@ async function runBuild({ viteConfig, viteOutDir, plugins, buildTarget }: {
                 entry,
                 formats: ['es'],
             },
-            rollupOptions: {
-                output: {
-                    entryFileNames: 'meteor-entry.js',
-                    chunkFileNames: '[name].js',
-                },
-            },
             outDir: viteOutDir,
             minify: false,
         },
@@ -161,11 +155,20 @@ async function runBuild({ viteConfig, viteOutDir, plugins, buildTarget }: {
     
     validateOutput(result);
     
-    return result.output.map(asset => ({
+    function isEntry(asset: OutputChunk | OutputAsset) {
+        if ('isEntry' in asset) {
+            return asset.isEntry;
+        }
+        
+        return false;
+    }
+    
+    return result.output.map((asset) => ({
         name: asset.name,
         type: asset.type,
         fileName: asset.fileName,
-        absolutePath: Path.join(outDir, asset.fileName)
+        absolutePath: Path.join(outDir, asset.fileName),
+        isEntry: isEntry(asset),
     }))
 }
 
