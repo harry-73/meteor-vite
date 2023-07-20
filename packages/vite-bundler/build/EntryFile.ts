@@ -44,12 +44,11 @@ export default class EntryFile {
     
     /**
      * Patch the current file with an import string to assist the Meteor bundler with Vite-built modules.
-     * @param {string} importPath
      */
-    public addImport({ relativeImport = '' }) {
+    public addImport(importString: { relative: string }) {
         const importPath = Path.relative(
             Path.dirname(this.relativePath),
-            relativeImport,
+            importString.relative,
         )
         FS.writeFileSync(
             this.absolutePath,
