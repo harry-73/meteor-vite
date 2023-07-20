@@ -11,6 +11,7 @@ import { PluginSettings, ProjectJson } from '../../vite/plugin/MeteorStubs';
 import { RefreshNeeded } from '../../vite/ViteLoadRequest';
 import CreateIPCInterface, { IPCReply } from './IPC/interface';
 import { onTeardown } from './IPC/teardown';
+import { getViteTempDir } from './utils/ConfigParser';
 
 let server: ViteDevServer & { config: MeteorViteConfig };
 
@@ -75,7 +76,7 @@ export default CreateIPCInterface({
                         },
                     },
                 ],
-                cacheDir: packageJson?.meteor?.tempDir || Path.resolve(OS.tmpdir(), 'meteor-vite', packageJson.name, '.vite-server'),
+                cacheDir: await getViteTempDir(packageJson),
             });
             
             process.on('warning', (warning) => {
