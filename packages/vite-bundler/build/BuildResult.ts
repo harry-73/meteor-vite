@@ -96,6 +96,7 @@ export default class BuildResult {
                 // Patch meteor entry
                 if (file.isEntry) {
                     entryFile.addImport({ relative: Path.join(copyToPath, file.fileName) });
+                    entryAssets.push(file);
                 }
                 
             } else {
