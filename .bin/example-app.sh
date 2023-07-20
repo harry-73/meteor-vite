@@ -39,6 +39,7 @@ build() {
 # Build then start a production app
 launch() {
   (build) || exit 1
+  chmod +w -R "$BUILD_TARGET" # Allow writes to the build, very handy for tinkering with the builds
 
   start:production
 }
