@@ -171,6 +171,7 @@ try {
       files.forEach(file => {
         switch (path.extname(file.getBasename())) {
           case '.js':
+          case '.mjs':
             file.addJavaScript({
               path: file.getPathInPackage(),
               data: file.getContentsAsString(),
