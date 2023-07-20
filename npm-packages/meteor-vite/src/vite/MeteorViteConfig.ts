@@ -11,6 +11,11 @@ export declare interface MeteorViteConfig extends ResolvedConfig {
         clientEntry?: string;
         
         /**
+         * Vite entrypoint if building for SSR.
+         */
+        serverEntry?: string;
+        
+        /**
          * Settings for controlling how stubs created by Meteor-Vite are validated.
          * These settings only apply in a development environment. Once the app is bundled for production, runtime
          * stub validation is disabled.

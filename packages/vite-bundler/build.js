@@ -151,46 +151,19 @@ try {
 
   endTime = performance.now()
   console.log(pc.green(`⚡️ Build successful (${Math.round((endTime - startTime) * 100) / 100}ms)`))
-  const entryAsset = payload.output.find(o => o.fileName === 'meteor-entry.js' && o.type === 'chunk')
-
-  if (!entryAsset) {
-    throw new Error('No meteor-entry chunk found')
-  }
 
   // Add assets to Meteor
-
-  // Copy the assets to the Meteor auto-imported sources
-  const viteOutSrcDir = path.join(cwd, 'client', 'vite')
-  fs.ensureDirSync(viteOutSrcDir)
-  fs.emptyDirSync(viteOutSrcDir)
-
-  for (const file of payload.output) {
-    const from = file.absolutePath;
-    const to = path.join(viteOutSrcDir, file.fileName);
-
-    fs.ensureDirSync(path.dirname(to))
-
-    if (path.extname(from) === '.js') {
-      // Transpile to Meteor target (Dynamic import support)
-      // @TODO don't use Babel
-      const source = fs.readFileSync(from, 'utf8')
-      const babelOptions = Babel.getDefaultOptions()
-      babelOptions.babelrc = true
-      babelOptions.sourceMaps = true
-      babelOptions.filename = babelOptions.sourceFileName = from
-      const transpiled = Babel.compile(source, babelOptions, {
-        cacheDirectory: path.join(tempDir, '.babel-cache'),
-      })
-      fs.writeFileSync(to, transpiled.code, 'utf8')
-    } else {
-      fs.copyFileSync(from, to)
-    }
+  const assets = {
+    client: processOutput({
+      files: payload.output.client,
+      copyToPath: path.join(cwd, 'client', 'vite')
+    }),
+    server: processOutput({
+      files: payload.output.server,
+      copyToPath: path.join(cwd, 'server', 'vite')
+    }),
   }
 
-  // Patch meteor entry
-  if (payload.build.target === 'meteor') {
-    entryFile.client.addImport({ relative: path.join(viteOutSrcDir, entryAsset.fileName) });
-  }
 
   class Compiler {
     processFilesForTarget (files) {
@@ -225,14 +198,16 @@ try {
     }
 
     afterLink () {
-      fs.removeSync(viteOutSrcDir)
+      fs.removeSync(assets.client.targetDir);
+      fs.removeSync(assets.server.targetDir);
       entryFile.client.cleanup();
+      entryFile.server.cleanup();
     }
   }
 
   Plugin.registerCompiler({
     extensions: [],
-    filenames: payload.output.map(file => path.basename(file.fileName)),
+    filenames: [assets.server.files, assets.client.files].flat().map((file) => file.fileName),
   }, () => new Compiler())
 } catch (e) {
   throw e
@@ -240,4 +215,48 @@ try {
   console.log(pc.blue('⚡️ Cleaning up temporary files...'))
   fs.rmSync(tempDir, { recursive: true, force: true });
   console.log(pc.green('⚡️ Cleanup completed'))
+}
+
+function processOutput({ copyToPath, files }) {
+  const entryAsset = files.client.find(o => o.fileName === 'meteor-entry.js' && o.type === 'chunk');
+
+  if (!entryAsset) {
+    throw new Error('No meteor-entry chunk found')
+  }
+
+  // Copy the assets to the Meteor auto-imported sources
+  fs.ensureDirSync(copyToPath)
+  fs.emptyDirSync(copyToPath)
+
+  for (const file of files) {
+    const from = file.absolutePath;
+    const to = path.join(copyToPath, file.fileName);
+
+    fs.ensureDirSync(path.dirname(to))
+
+    if (path.extname(from) === '.js') {
+      // Transpile to Meteor target (Dynamic import support)
+      // @TODO don't use Babel
+      const source = fs.readFileSync(from, 'utf8')
+      const babelOptions = Babel.getDefaultOptions()
+      babelOptions.babelrc = true
+      babelOptions.sourceMaps = true
+      babelOptions.filename = babelOptions.sourceFileName = from
+      const transpiled = Babel.compile(source, babelOptions, {
+        cacheDirectory: path.join(tempDir, '.babel-cache'),
+      })
+      fs.writeFileSync(to, transpiled.code, 'utf8')
+    } else {
+      fs.copyFileSync(from, to)
+    }
+  }
+
+  // Patch meteor entry
+  entryFile.client.addImport({ relative: path.join(copyToPath, entryAsset.fileName) });
+
+  return {
+    entryAsset,
+    targetDir: copyToPath,
+    files,
+  };
 }

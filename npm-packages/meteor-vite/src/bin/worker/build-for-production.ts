@@ -19,13 +19,18 @@ interface BuildOptions {
 type Replies = IPCReply<{
     kind: 'buildResult',
     data: {
-        payload: {
-            success: boolean,
-            meteorViteConfig: any,
-            output?: BuildOutput;
-        };
+        payload: BuildPayload;
     }
 }>
+
+type BuildPayload = {
+    success: boolean,
+    meteorViteConfig: any,
+    outputs?: {
+        client: BuildOutput;
+        server?: BuildOutput;
+    };
+}
 
 type BuildOutput = {
     name?: string,
@@ -57,6 +62,25 @@ export default CreateIPCInterface({
             InjectMeteorPrograms({ meteor }),
         ]
         
+        const outputs: BuildPayload['outputs'] = {
+            client: await runBuild({
+                viteOutDir,
+                viteConfig,
+                plugins,
+                entry: viteConfig.meteor?.clientEntry || '',
+            }),
+            server: undefined,
+        }
+        
+        if (viteConfig.meteor?.serverEntry) {
+            outputs.server = await runBuild({
+                viteOutDir,
+                viteConfig,
+                plugins,
+                entry: viteConfig.meteor.serverEntry,
+            });
+        }
+        
         // Result payload
         reply({
             kind: 'buildResult',
@@ -64,11 +88,7 @@ export default CreateIPCInterface({
                 payload: {
                     success: true,
                     meteorViteConfig: viteConfig.meteor,
-                    output: await runBuild({
-                        viteOutDir,
-                        viteConfig,
-                        plugins,
-                    }),
+                    outputs: outputs,
                 },
             }
         })
@@ -76,14 +96,15 @@ export default CreateIPCInterface({
 })
 
 
-async function runBuild({ viteConfig, viteOutDir, plugins }: {
+async function runBuild({ viteConfig, viteOutDir, plugins, entry }: {
     viteConfig: MeteorViteConfig,
     viteOutDir: string;
     plugins: PluginOption[],
+    entry: string;
 }): Promise<BuildOutput> {
     let outDir = viteConfig.build.outDir;
     
-    if (!viteConfig.meteor?.clientEntry) {
+    if (!entry) {
         throw new Error(`You need to specify an entrypoint in your Vite config! See: ${MeteorVitePackage.homepage}`);
     }
     
@@ -91,7 +112,7 @@ async function runBuild({ viteConfig, viteOutDir, plugins }: {
         configFile: viteConfig.configFile,
         build: {
             lib: {
-                entry: viteConfig?.meteor?.clientEntry,
+                entry,
                 formats: ['es'],
             },
             rollupOptions: {
