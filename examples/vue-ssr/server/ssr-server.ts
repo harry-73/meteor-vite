@@ -16,5 +16,5 @@ WebApp.connectHandlers.use('/', async (req, res, next) => {
     if (!httpResponse) return next()
     const { body, statusCode, contentType, earlyHints } = httpResponse
     if (res.writeEarlyHints) res.writeEarlyHints({ link: earlyHints.map((e) => e.earlyHintLink) })
-    res.status(statusCode).type(contentType).send(body)
+    res.setHeader('Content-Type', contentType).writeHead(statusCode).end(body);
 });
