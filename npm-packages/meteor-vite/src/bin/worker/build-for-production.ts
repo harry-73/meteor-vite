@@ -174,6 +174,8 @@ function rewriteReservedDirectoryNames({ outDir, asset }: { outDir: string, asse
     if ('source' in asset && typeof asset.source === 'string') {
         let newSource = asset.source;
         
+        // Rewrite broken relative node_modules reference from vite-plugin-ssr's importBuild utility.
+        // Todo: Look into solving this in another way not specific to vite-plugin-ssr
         if (asset.fileName.includes('importBuild')) {
             asset.source = asset.source.replace(/'[./]+\/node_modules\/vite-plugin-ssr\//, `'vite-plugin-ssr/`)
         }
