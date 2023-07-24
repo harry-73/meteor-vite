@@ -14,6 +14,7 @@ export default class BuildResult {
     protected readonly entryFile: EntryFiles;
     protected readonly tempAssetDir: { server?: string, client?: string } = {}
     protected readonly projectRoot: string;
+    protected readonly outputRoot: string;
     
     constructor(build: {
         payload: BuildPayload,
@@ -31,6 +32,7 @@ export default class BuildResult {
         this.projectRoot = build.projectRoot;
         this.payload = build.payload;
         this.entryFile = build.entryFile;
+        this.outputRoot = Path.join(this.projectRoot, 'vite');
     }
     
     public copyToProject() {
