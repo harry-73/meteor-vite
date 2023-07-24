@@ -61,7 +61,7 @@ export default class BuildResult {
     protected processOutput({ buildTarget }: {  buildTarget: 'server' | 'client' }) {
         const entryFile = this.entryFile[buildTarget];
         const files = this.payload?.outputs?.[buildTarget];
-        const targetDirectory = Path.join(this.projectRoot, 'vite', `vite-${buildTarget}`);
+        const targetDirname = `vite-${buildTarget}`;
         const entryAssets: FormattedFileChunk[] = [];
         
         if (!files) {
@@ -74,13 +74,13 @@ export default class BuildResult {
         
         
         // Copy the assets to the Meteor auto-imported sources
-        FS.ensureDirSync(targetDirectory)
-        FS.emptyDirSync(targetDirectory)
+        FS.ensureDirSync(Path.join(this.tempAssetDir, targetDirname))
+        FS.emptyDirSync(Path.join(this.tempAssetDir, targetDirname))
         
         for (const file of files) {
-            file.fileName = `${file.fileName}`;
+            file.fileName = `${targetDirname}/${file.fileName}`;
             const from = file.absolutePath;
-            const to = Path.join(targetDirectory, file.fileName);
+            const to = Path.join(this.tempAssetDir, file.fileName);
             
             FS.ensureDirSync(Path.dirname(to))
             
@@ -112,7 +112,7 @@ export default class BuildResult {
         
         // Patch meteor entry
         entryFile.addImports({
-            imports: entryAssets.map((asset) => Path.join(targetDirectory, asset.fileName))
+            imports: entryAssets.map((asset) => Path.join(this.tempAssetDir, asset.fileName))
         });
         
         const columnWidth = 80;
@@ -128,7 +128,6 @@ export default class BuildResult {
         
         return {
             entryAssets,
-            targetDir: targetDirectory,
             files,
         };
     }
