@@ -28,12 +28,12 @@ export default class BuildResult {
         
         const targetDirectory = Path.join(details.projectRoot, 'vite');
         
-        const client = this.processOutput({ targetDirectory, buildTarget: 'client' });
+        const client = this.processOutput({ outputRootDir: targetDirectory, buildTarget: 'client' });
         
         let server: ReturnType<typeof this.processOutput> | undefined;
         
         if (this.payload.outputs?.server?.length) {
-            server = this.processOutput({ targetDirectory, buildTarget: 'server', });
+            server = this.processOutput({ outputRootDir: targetDirectory, buildTarget: 'server', });
         }
         
         return [
@@ -56,9 +56,10 @@ export default class BuildResult {
         this.entryFile.server?.cleanup();
     }
     
-    protected processOutput({ targetDirectory, buildTarget }: { targetDirectory: string, buildTarget: 'server' | 'client' }) {
+    protected processOutput({ outputRootDir, buildTarget }: { outputRootDir: string, buildTarget: 'server' | 'client' }) {
         const entryFile = this.entryFile[buildTarget];
         const files = this.payload?.outputs?.[buildTarget];
+        const targetDirectory = Path.join(outputRootDir, `vite-${buildTarget}`);
         const entryAssets: FormattedFileChunk[] = [];
         
         if (!files) {
@@ -69,12 +70,13 @@ export default class BuildResult {
             throw new Error(`Unable to resolve Meteor mainModule for ${buildTarget}! Did you remember to specify one in your package.json?`)
         }
         
+        
         // Copy the assets to the Meteor auto-imported sources
         FS.ensureDirSync(targetDirectory)
         FS.emptyDirSync(targetDirectory)
         
         for (const file of files) {
-            file.fileName = `vite-${buildTarget}/${file.fileName}`;
+            file.fileName = `${file.fileName}`;
             const from = file.absolutePath;
             const to = Path.join(targetDirectory, file.fileName);
             
@@ -126,7 +128,7 @@ export default class BuildResult {
         
         return {
             entryAssets,
-            targetDir: targetDirectory,
+            targetDir: outputRootDir,
             files,
         };
     }
