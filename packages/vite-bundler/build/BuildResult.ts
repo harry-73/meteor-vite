@@ -74,7 +74,7 @@ export default class BuildResult {
         FS.emptyDirSync(targetDirectory)
         
         for (const file of files) {
-            file.fileName = `${buildTarget}/${file.fileName}`;
+            file.fileName = `vite-${buildTarget}/${file.fileName}`;
             const from = file.absolutePath;
             const to = Path.join(targetDirectory, file.fileName);
             
