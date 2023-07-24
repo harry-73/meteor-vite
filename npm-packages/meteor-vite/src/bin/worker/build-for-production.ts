@@ -1,3 +1,4 @@
+import FS from 'fs';
 import Path from 'path';
 import { OutputAsset, OutputChunk, RollupOutput } from 'rollup';
 import { build, LibraryOptions, PluginOption, resolveConfig } from 'vite';
@@ -135,21 +136,66 @@ async function runBuild({ viteConfig, viteOutDir, plugins, buildTarget }: {
 
 function formatOutput(outDir: string) {
     return (asset: OutputChunk | OutputAsset) => {
-        let isEntry = false;
+        let isEntry = true;
         
         if ('isEntry' in asset) {
             isEntry = asset.isEntry;
         }
         
+        const { absolutePath } = rewriteReservedDirectoryNames({ outDir, asset })
+        
         return {
             name: asset.name,
             type: asset.type,
             fileName: asset.fileName,
-            absolutePath: Path.join(outDir, asset.fileName),
             isEntry,
+            absolutePath,
         }
     }
 }
+
+/**
+ * Rewrite import paths and file names that include reserved Meteor keywords. (e.g. 'client' or 'server')
+ * This is important as Vite SSR builds are usually split into directories named "server" and "client". But where
+ * the server does need to access both directories. Something Meteor strictly disallows.
+ * {@link https://guide.meteor.com/structure.html#special-directories}
+ */
+function rewriteReservedDirectoryNames({ outDir, asset }: { outDir: string, asset: OutputChunk | OutputAsset }) {
+    let absolutePath = Path.join(outDir, asset.fileName);
+    
+    if (absolutePath.match(CLIENT_ONLY_REGEX)) {
+        const newPath = rewriteClientOnly(absolutePath);
+        FS.mkdirSync(Path.dirname(newPath), { recursive: true });
+        FS.copyFileSync(absolutePath, newPath);
+        absolutePath = newPath;
+        asset.fileName = rewriteClientOnly(asset.fileName)
+    }
+    
+    if ('source' in asset && typeof asset.source === 'string') {
+        let newSource = asset.source;
+        
+        if (asset.fileName.includes('importBuild')) {
+            asset.source = asset.source.replace(/'[./]+\/node_modules\/vite-plugin-ssr\//, `'vite-plugin-ssr/`)
+        }
+        
+        
+        newSource = rewriteClientOnly(asset.source)
+        
+        if (['.mjs', '.js', '.cjs'].includes(Path.extname(asset.fileName))) {
+            FS.writeFileSync(absolutePath, newSource);
+        }
+    }
+    
+    return {
+        absolutePath,
+    }
+}
+
+const CLIENT_ONLY_REGEX = /(\/|^)client\//g;
+function rewriteClientOnly(content: string) {
+    return content.replace(CLIENT_ONLY_REGEX, '/vite-client/');
+}
+
 
 export type MeteorViteBuildTarget = 'client' | 'server';
 interface BuildOptions {
