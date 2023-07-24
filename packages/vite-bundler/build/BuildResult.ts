@@ -13,27 +13,35 @@ export default class BuildResult {
     protected readonly payload: BuildPayload;
     protected readonly entryFile: EntryFiles;
     protected readonly tempAssetDir: { server?: string, client?: string } = {}
+    protected readonly projectRoot: string;
     
-    constructor(build: { payload: BuildPayload, entryFile: EntryFiles }) {
+    constructor(build: {
+        payload: BuildPayload,
+        entryFile: EntryFiles,
+        /**
+         * Absolute path to the user's Meteor project that is being bundled.
+         * This would normally be the current working directory.
+         */
+        projectRoot: string
+    }) {
         if (!build.payload.success) {
             throw new Error('Vite build failed')
         }
         
+        this.projectRoot = build.projectRoot;
         this.payload = build.payload;
         this.entryFile = build.entryFile;
     }
     
-    public copyToProject(details: { projectRoot: string }) {
+    public copyToProject() {
         console.log(pc.blue(`⚡️ Appending Vite entry-points to Meteor entries`));
         
-        const targetDirectory = Path.join(details.projectRoot, 'vite');
-        
-        const client = this.processOutput({ outputRootDir: targetDirectory, buildTarget: 'client' });
+        const client = this.processOutput({ buildTarget: 'client' });
         
         let server: ReturnType<typeof this.processOutput> | undefined;
         
         if (this.payload.outputs?.server?.length) {
-            server = this.processOutput({ outputRootDir: targetDirectory, buildTarget: 'server', });
+            server = this.processOutput({ buildTarget: 'server', });
         }
         
         return [
@@ -56,10 +64,10 @@ export default class BuildResult {
         this.entryFile.server?.cleanup();
     }
     
-    protected processOutput({ outputRootDir, buildTarget }: { outputRootDir: string, buildTarget: 'server' | 'client' }) {
+    protected processOutput({ buildTarget }: {  buildTarget: 'server' | 'client' }) {
         const entryFile = this.entryFile[buildTarget];
         const files = this.payload?.outputs?.[buildTarget];
-        const targetDirectory = Path.join(outputRootDir, `vite-${buildTarget}`);
+        const targetDirectory = Path.join(this.projectRoot, 'vite', `vite-${buildTarget}`);
         const entryAssets: FormattedFileChunk[] = [];
         
         if (!files) {
@@ -128,7 +136,7 @@ export default class BuildResult {
         
         return {
             entryAssets,
-            targetDir: outputRootDir,
+            targetDir: targetDirectory,
             files,
         };
     }

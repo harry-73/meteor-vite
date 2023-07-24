@@ -134,6 +134,7 @@ try {
         const buildResult = new BuildResult({
           payload: result.payload,
           entryFile,
+          projectRoot: cwd
         })
 
         resolve(buildResult);
@@ -158,9 +159,7 @@ try {
   console.log(pc.blue(`⚡️ Preparing build for the Meteor compiler...`))
   startTime = performance.now();
 
-  const assets = buildResult.copyToProject({
-    projectRoot: cwd
-  });
+  const assets = buildResult.copyToProject();
 
   endTime = performance.now()
   console.log(pc.green(`⚡️ Build ready (${Math.round((endTime - startTime) * 100) / 100}ms)`))
