@@ -12,9 +12,8 @@ import pc from 'picocolors';
 export default class BuildResult {
     protected readonly payload: BuildPayload;
     protected readonly entryFile: EntryFiles;
-    protected readonly tempAssetDir: { server?: string, client?: string } = {}
     protected readonly projectRoot: string;
-    protected readonly outputRoot: string;
+    protected readonly tempAssetDir: string;
     
     constructor(build: {
         payload: BuildPayload,
@@ -32,7 +31,7 @@ export default class BuildResult {
         this.projectRoot = build.projectRoot;
         this.payload = build.payload;
         this.entryFile = build.entryFile;
-        this.outputRoot = Path.join(this.projectRoot, 'vite');
+        this.tempAssetDir = Path.join(this.projectRoot, 'vite');
     }
     
     public copyToProject() {
@@ -53,14 +52,7 @@ export default class BuildResult {
     }
     
     public cleanupCopiedFiles() {
-        const { server, client } = this.tempAssetDir;
-        
-        if (server) {
-            FS.removeSync(server);
-        }
-        if (client) {
-            FS.removeSync(client);
-        }
+        FS.removeSync(this.tempAssetDir);
         
         this.entryFile.client.cleanup();
         this.entryFile.server?.cleanup();
@@ -113,8 +105,6 @@ export default class BuildResult {
                 FS.copyFileSync(from, to)
             }
         }
-        
-        this.tempAssetDir[buildTarget] = targetDirectory;
         
         if (!entryAssets.length) {
             throw new Error(`No entry chunks found in Vite ${buildTarget} build result!`);
