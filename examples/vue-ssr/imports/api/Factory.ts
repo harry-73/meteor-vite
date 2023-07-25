@@ -18,26 +18,24 @@ export function CreateService<CollectionSchema>(service: {
         [key in keyof Methods]: (...params: Parameters<Methods[key]>) => ReturnType<Methods[key]>
     };
     
+    if (Meteor.isServer) {
+        Meteor.methods(service.methods(collection));
+    }
+    
+    Object.entries(service.methods(collection)).forEach(([name]) => {
+        const methodName = `${service.name}.${name}`
+        methods[name] = (...params) => Meteor.call(methodName, ...params);
+    })
     
     Object.entries(service.publications(collection)).forEach(([name, handler]) => {
         const publicationName = `${service.name}.${name}`
         
         if (Meteor.isServer) {
             Meteor.publish(publicationName, handler);
-            return;
         }
         
         subscribe[name] = (...params) => Meteor.subscribe(publicationName, ...params);
     });
-    
-    if (Meteor.isServer) {
-        Meteor.methods(service.methods(collection));
-    } else {
-        Object.entries(service.methods(collection)).forEach(([name]) => {
-            const methodName = `${service.name}.${name}`
-            methods[name] = (...params) => Meteor.call(methodName, ...params);
-        })
-    }
     
     return {
         methods,
