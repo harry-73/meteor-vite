@@ -25,12 +25,13 @@ export function CreateService<
         [key in keyof Methods]: (...params: Parameters<Methods[key]>) => ReturnType<Methods[key]>
     };
     
-    if (Meteor.isServer) {
-        Meteor.methods(service.methods(collection));
-    }
-    
-    Object.entries(service.methods(collection)).forEach(([name]: [keyof Methods, any]) => {
+    Object.entries(service.methods(collection)).forEach(([name, handler]: [keyof Methods, any]) => {
         const methodName = `${namespace}.${name.toString()}`
+        
+        if (Meteor.isServer) {
+            Meteor.methods({ [methodName]: handler })
+        }
+        
         methods[name] = (...params) => Meteor.call(methodName, ...params);
     })
     
