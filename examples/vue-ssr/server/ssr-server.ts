@@ -11,35 +11,14 @@ WebAppInternals.registerBoilerplateDataCallback('ssr-server', async (req, data) 
         urlOriginal: req.url.href
     }
     
-    console.log('Received request:', { pageContextInit });
+    console.log('Received request:', { pageContextInit, data });
     
     const { httpResponse } = await renderPage(pageContextInit)
     
     const { body, statusCode, contentType, earlyHints } = httpResponse
+    const { dynamicBody, dynamicHead } = body.match(/<head>(?<dynamicHead>[\s\S]+)<\/head>\s*<body>(?<dynamicBody>[\s\S]+)<\/body>/i)?.groups || {};
     
-    data.dynamicBody = body;
+    data.dynamicBody = dynamicBody;
+    data.dynamicHead = dynamicHead;
     
-});
-
-WebApp.connectHandlers.use('/ssr', async (req, res, next) => {
-    console.log(WebApp.clientPrograms['web.browser'])
-    const pageContextInit = {
-        urlOriginal: req.originalUrl
-    }
-    
-    console.log('Received request:', { pageContextInit,  });
-    
-    const { httpResponse } = await renderPage(pageContextInit)
-    
-    if (!httpResponse) {
-        return next()
-    }
-    
-    const { body, statusCode, contentType, earlyHints } = httpResponse
-    
-    if (res.writeEarlyHints) {
-        res.writeEarlyHints({ link: earlyHints.map((e) => e.earlyHintLink) })
-    }
-    
-    res.setHeader('Content-Type', contentType).writeHead(statusCode).end(body);
 });
