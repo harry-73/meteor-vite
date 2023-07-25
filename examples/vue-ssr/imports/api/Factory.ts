@@ -8,7 +8,7 @@ export function CreateService<CollectionSchema>(service: {
     type Methods = ReturnType<typeof service.methods>;
     
     const collection = new Mongo.Collection<CollectionSchema>(service.name);
-    const publications = {} as {
+    const subscribe = {} as {
         [key in keyof Publications]: (...params: Parameters<Publications[key]>) => Meteor.SubscriptionHandle
     };
     const methods = {} as {
@@ -24,7 +24,7 @@ export function CreateService<CollectionSchema>(service: {
             return;
         }
         
-        publications[name] = (...params) => Meteor.subscribe(publicationName, ...params);
+        subscribe[name] = (...params) => Meteor.subscribe(publicationName, ...params);
     });
     
     if (Meteor.isServer) {
@@ -39,6 +39,6 @@ export function CreateService<CollectionSchema>(service: {
     return {
         methods,
         collection,
-        publications,
+        subscribe,
     }
 }
