@@ -37,8 +37,8 @@ export function CreateService<CollectionSchema>(service: {
     }
     
     return {
-        Methods: methods,
-        Collection: collection,
-        Subscribe: publications,
+        methods,
+        collection,
+        publications,
     }
 }
