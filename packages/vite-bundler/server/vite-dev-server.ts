@@ -5,8 +5,9 @@ import {
     getConfig,
     setConfig,
 } from '../loading/vite-connection-handler';
-import { createWorkerFork, getProjectPackageJson, isMeteorIPCMessage, MeteorViteRuntime } from '../workers';
+import { createWorkerFork, getProjectPackageJson, isMeteorIPCMessage } from '../workers';
 import { WebApp } from 'meteor/webapp';
+import { MeteorViteRuntime } from './MeteorViteRuntime';
 
 export default class ViteDevServer {
     protected server?: ReturnType<typeof createWorkerFork>;
