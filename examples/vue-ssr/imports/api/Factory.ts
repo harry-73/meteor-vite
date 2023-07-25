@@ -1,3 +1,6 @@
+import { Meteor } from 'meteor/meteor';
+import { Mongo } from 'meteor/mongo';
+
 /**
  * Just a handy helper function for quickly composing new type-safe Meteor methods and publications.
  * You can of course use the traditional Meteor.publish(...) and Meteor.methods(...) approach if you prefer that.
