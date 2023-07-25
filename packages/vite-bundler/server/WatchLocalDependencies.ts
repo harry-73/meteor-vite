@@ -1,7 +1,7 @@
 import FS from 'fs';
 import Path from 'path';
 import { createWorkerFork, onTeardown, workerDir } from '../workers';
-import ViteDevServer from './vite-dev-server';
+import ViteDevServer from './ViteDevServer';
 
 export default class WatchLocalDependencies {
     protected pid: string;

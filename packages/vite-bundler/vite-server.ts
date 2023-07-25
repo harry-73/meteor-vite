@@ -4,8 +4,8 @@ import { WebApp, WebAppInternals } from 'meteor/webapp';
 import { MeteorManifest, MeteorRuntimeConfig } from '../../npm-packages/meteor-vite/src/meteor/InternalTypes';
 import { getConfig, MeteorViteConfig, ViteConnection, } from './loading/vite-connection-handler';
 import { MeteorViteRuntime } from './server/MeteorViteRuntime';
-import ViteDevServer from './server/vite-dev-server';
-import WatchLocalDependencies from './server/watch-local-dependencies';
+import ViteDevServer from './server/ViteDevServer';
+import WatchLocalDependencies from './server/WatchLocalDependencies';
 
 
 if (Meteor.isDevelopment) {
