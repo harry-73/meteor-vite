@@ -1,6 +1,7 @@
 // See https://vite-plugin-ssr.com/data-fetching
 export const passToClient = ['pageProps', 'urlPathname'];
 import { WebApp } from 'meteor/webapp';
+import { Meteor } from 'meteor/meteor';
 
 import { renderToString as renderToString_ } from '@vue/server-renderer'
 import type { App } from 'vue'
@@ -46,6 +47,8 @@ export async function render(pageContext: PageContextServer) {
 }
 
 function meteorSetupTemplate(arc = 'web.browser') {
+    if (Meteor.isClient) return '';
+    
     const clientPrograms = WebApp.clientPrograms[arc];
     const clientScripts = clientPrograms.manifest.filter((program) => program.type === 'js').map((entry) => {
         return `<script src="${entry.url}"></script>`
