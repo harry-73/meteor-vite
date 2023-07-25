@@ -1,8 +1,11 @@
 import { CreateService } from '/imports/api/Factory';
 import { Meteor } from 'meteor/meteor';
+import { Mongo } from 'meteor/mongo';
 
-export default CreateService<{ message: string, timestamp: number }>({
-    name: 'chat',
+export default CreateService({
+    collection() {
+        return new Mongo.Collection<{ message: string, timestamp: number }>('chat')
+    },
     publications(collection) {
         return {
             all() {
