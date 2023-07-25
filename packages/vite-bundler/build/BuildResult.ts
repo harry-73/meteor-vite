@@ -86,11 +86,8 @@ export default class BuildResult {
             const from = file.absolutePath;
             const to = Path.join(this.tempAssetDir, file.fileName);
             
-            if (file.fileName.startsWith(`${targetDirname}/assets/`)) {
-                assets.add(Path.basename(file.fileName));
-            }
-            
             FS.ensureDirSync(Path.dirname(to))
+            assets.add(file.fileName);
             
             if (['.js', '.mjs'].includes(Path.extname(from))) {
                 // Transpile to Meteor target (Dynamic import support)
