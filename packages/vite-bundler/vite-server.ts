@@ -1,9 +1,7 @@
-import type { NextHandleFunction } from 'connect';
 import type HTTP from 'http';
 import { Meteor } from 'meteor/meteor';
 import { WebApp, WebAppInternals } from 'meteor/webapp';
 import {
-    MeteorArchitecture,
     MeteorManifest,
     MeteorRuntimeConfig,
 } from '../../npm-packages/meteor-vite/src/meteor/InternalTypes';
@@ -12,8 +10,21 @@ import { MeteorViteRuntime } from './server/MeteorViteRuntime';
 import ViteDevServer from './server/ViteDevServer';
 import WatchLocalDependencies from './server/WatchLocalDependencies';
 
-WebApp.connectHandlers.use('__meteor-vite/meteor/web.browser/__meteor_runtime_config__.js', runtimeTemplate('web.browser'))
-WebApp.connectHandlers.use('__meteor-vite/meteor/web.browser.legacy/__meteor_runtime_config__.js', runtimeTemplate('web.browser.legacy'))
+WebApp.connectHandlers.use('__meteor-vite/meteor/__meteor_runtime_config__.js', (req, res) => {
+    const url = new URL(req.url || '');
+    const architecture = url.searchParams.get('arc') || 'web.browser';
+    
+    if (!MeteorViteRuntime.hasClientArchitecture(architecture)) {
+        res.writeHead(404);
+        res.end('Unrecognized client archetecture');
+        return;
+    }
+    
+    const runtime = new MeteorViteRuntime({ architecture });
+    res.setHeader('Content-Type', 'application/javascript')
+    res.writeHead(200);
+    res.end(runtime.initTemplate());
+});
 
 if (Meteor.isDevelopment) {
     const server = new ViteDevServer(
@@ -51,16 +62,6 @@ if (Meteor.isDevelopment) {
     }
     
     Meteor.startup(() => server.start());
-}
-
-function runtimeTemplate(architecture: MeteorArchitecture): NextHandleFunction {
-    const runtime = new MeteorViteRuntime({ architecture });
-    
-    return (req, res) => {
-        res.setHeader('Content-Type', 'application/javascript')
-        res.writeHead(200);
-        res.end(runtime.initTemplate());
-    }
 }
 
 interface BoilerplateData {

@@ -1,4 +1,4 @@
-import { MeteorRuntimeConfig } from '../../../npm-packages/meteor-vite/src/meteor/InternalTypes';
+import { MeteorArchitecture, MeteorRuntimeConfig } from '../../../npm-packages/meteor-vite/src/meteor/InternalTypes';
 import { WebApp } from 'meteor/webapp';
 
 export class MeteorViteRuntime {
@@ -6,6 +6,10 @@ export class MeteorViteRuntime {
     
     constructor({ architecture = 'web.browser' }) {
         this.architecture = architecture;
+    }
+    
+    public static hasClientArchitecture(architecture: string): architecture is MeteorArchitecture {
+        return architecture in WebApp.clientPrograms;
     }
     
     /**
