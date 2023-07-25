@@ -173,8 +173,8 @@ export function getTempDir() {
     }
 }
 
-export function getRuntimeConfig(arc: 'web.browser'): MeteorRuntimeConfig {
-    const program = WebApp.clientPrograms[arc] as typeof WebApp.clientPrograms[string] & {
+export function getRuntimeConfig(architecture = 'web.browser'): MeteorRuntimeConfig {
+    const program = WebApp.clientPrograms[architecture] as typeof WebApp.clientPrograms[string] & {
         meteorRuntimeConfig: string
     };
     const config = JSON.parse(program.meteorRuntimeConfig);
