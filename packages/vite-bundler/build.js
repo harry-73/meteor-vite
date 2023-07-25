@@ -159,35 +159,25 @@ try {
   console.log(pc.blue(`⚡️ Preparing build for the Meteor compiler...`))
   startTime = performance.now();
 
-  const assets = buildResult.copyToProject();
+  const { assetFileNames } = buildResult.copyToProject();
 
   endTime = performance.now()
   console.log(pc.green(`⚡️ Build ready (${Math.round((endTime - startTime) * 100) / 100}ms)`))
 
 
-  class Compiler {
+  class SSRCompiler {
     processFilesForTarget (files) {
       files.forEach(file => {
-        switch (path.extname(file.getBasename())) {
-          case '.js':
-          case '.mjs':
-            file.addJavaScript({
-              path: file.getPathInPackage(),
-              data: file.getContentsAsString(),
-            })
-            break
-          case '.css':
-            file.addStylesheet({
-              path: file.getPathInPackage(),
-              data: file.getContentsAsString(),
-            })
-            break
-          default:
-            file.addAsset({
-              path: file.getPathInPackage(),
-              data: file.getContentsAsBuffer(),
-            })
+        const filePath = file.getPathInPackage().replace(/vite\/vite-(client|server)\//g, '');
+
+        if (!file.getPathInPackage().startsWith('vite/vite-client')) {
+          return;
         }
+
+        file.addAsset({
+          path: filePath,
+          data: file.getContentsAsBuffer(),
+        })
       })
     }
 
@@ -202,8 +192,8 @@ try {
 
   Plugin.registerCompiler({
     extensions: [],
-    filenames: assets.map((file) => file.fileName),
-  }, () => new Compiler())
+    filenames: [...assetFileNames],
+  }, () => new SSRCompiler())
 } catch (e) {
   throw e
 } finally {

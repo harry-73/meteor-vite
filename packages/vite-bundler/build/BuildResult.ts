@@ -45,10 +45,13 @@ export default class BuildResult {
             server = this.processOutput({ buildTarget: 'server', });
         }
         
-        return [
-            client.files,
-            server?.files || [],
-        ].flat();
+        
+        return {
+            assetFileNames: new Set([
+                ...client.assets,
+                ...server?.assets || [],
+            ])
+        };
     }
     
     public cleanupCopiedFiles() {
@@ -62,6 +65,7 @@ export default class BuildResult {
         const entryFile = this.entryFile[buildTarget];
         const files = this.payload?.outputs?.[buildTarget];
         const targetDirname = `vite-${buildTarget}`;
+        const assets = new Set();
         const entryAssets: FormattedFileChunk[] = [];
         
         if (!files) {
@@ -81,6 +85,10 @@ export default class BuildResult {
             file.fileName = `${targetDirname}/${file.fileName}`;
             const from = file.absolutePath;
             const to = Path.join(this.tempAssetDir, file.fileName);
+            
+            if (file.fileName.startsWith(`${targetDirname}/assets/`)) {
+                assets.add(Path.basename(file.fileName));
+            }
             
             FS.ensureDirSync(Path.dirname(to))
             
@@ -128,7 +136,7 @@ export default class BuildResult {
         
         return {
             entryAssets,
-            files,
+            assets,
         };
     }
 }
