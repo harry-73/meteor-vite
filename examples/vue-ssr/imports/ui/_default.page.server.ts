@@ -53,7 +53,7 @@ function meteorSetupTemplate(arc = 'web.browser') {
     return [
         `<script src="/__meteor-vite/meteor/__meteor_runtime_config__.js?arc=${arc}"></script>`,
         ...clientScripts
-    ]
+    ].join('\n')
 }
 
 async function renderToString(app: App) {
