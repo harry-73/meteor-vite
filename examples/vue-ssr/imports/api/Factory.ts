@@ -35,7 +35,7 @@ export function CreateService<CollectionSchema>(service: {
     } else {
         Object.entries(service.methods(collection)).forEach(([name]) => {
             const methodName = `${service.name}.${name}`
-            methods[name] = (...params) => Meteor.subscribe(methodName, ...params);
+            methods[name] = (...params) => Meteor.call(methodName, ...params);
         })
     }
     
