@@ -1,13 +1,15 @@
-import { fork, ChildProcess } from 'node:child_process'
+import FS from 'fs';
 import { Meteor } from 'meteor/meteor';
+import { ChildProcess, fork } from 'node:child_process';
 import OS from 'os';
 import Path from 'path';
-import FS from 'fs';
 import pc from 'picocolors';
 import type { WorkerMethod, WorkerResponse } from '../../npm-packages/meteor-vite';
 import type { WorkerResponseHooks } from '../../npm-packages/meteor-vite/src/bin/worker';
+import { MeteorRuntimeConfig } from '../../npm-packages/meteor-vite/src/meteor/InternalTypes';
 import type { MeteorIPCMessage } from '../../npm-packages/meteor-vite/src/meteor/MeteorEvents';
 import type { ProjectJson } from '../../npm-packages/meteor-vite/src/vite/plugin/MeteorStubs';
+import { WebApp } from 'meteor/webapp';
 
 // Use a worker to skip reify and Fibers
 // Use a child process instead of worker to avoid WASM/archived threads error
@@ -169,4 +171,12 @@ export function getTempDir() {
         console.warn(new Error(`⚡  Unable to set up temp directory for meteor-vite bundles. Will use node_modules instead`, { cause: error }));
         return Path.resolve(cwd, 'node_modules', '.vite-meteor-temp');
     }
+}
+
+export function getRuntimeConfig(arc: 'web.browser'): MeteorRuntimeConfig {
+    const program = WebApp.clientPrograms[arc] as typeof WebApp.clientPrograms[string] & {
+        meteorRuntimeConfig: string
+    };
+    const config = JSON.parse(program.meteorRuntimeConfig);
+    return config;
 }

@@ -1,19 +1,26 @@
-import { Meteor } from 'meteor/meteor'
-import { WebAppInternals, WebApp } from 'meteor/webapp'
-import type HTTP from 'http'
-import FS from 'fs'
+import FS from 'fs';
+import type HTTP from 'http';
+import { Meteor } from 'meteor/meteor';
+import { WebApp, WebAppInternals } from 'meteor/webapp';
 import Path from 'path';
+import { MeteorManifest, MeteorRuntimeConfig } from '../../npm-packages/meteor-vite/src/meteor/InternalTypes';
 import {
-    MeteorManifest,
-    MeteorRuntimeConfig,
-} from '../../npm-packages/meteor-vite/src/meteor/InternalTypes';
-import {
-    getConfig, DevConnectionLog,
+    buildConnectionUri,
+    DevConnectionLog,
+    getConfig,
     MeteorViteConfig,
     setConfig,
-    ViteConnection, buildConnectionUri,
+    ViteConnection,
 } from './loading/vite-connection-handler';
-import { createWorkerFork, getProjectPackageJson, isMeteorIPCMessage, onTeardown, workerDir } from './workers';
+import {
+    createWorkerFork,
+    getProjectPackageJson,
+    getRuntimeConfig,
+    isMeteorIPCMessage,
+    onTeardown,
+    workerDir,
+} from './workers';
+
 let pid: string;
 let viteServer: ReturnType<typeof createWorkerFork>;
 
@@ -121,12 +128,6 @@ function createViteServer() {
     })
     
     return viteServer;
-}
-
-function getRuntimeConfig(arc: 'web.browser'): MeteorRuntimeConfig {
-    const program = WebApp.clientPrograms[arc] as typeof WebApp.clientPrograms[string] & { meteorRuntimeConfig: string };
-    const config = JSON.parse(program.meteorRuntimeConfig);
-    return config;
 }
 
 function createMeteorViteBundleWatcher() {
