@@ -15,16 +15,17 @@ import {
 import {
     createWorkerFork,
     getProjectPackageJson,
-    getRuntimeConfig,
-    isMeteorIPCMessage,
+    isMeteorIPCMessage, MeteorViteRuntime,
     onTeardown,
     workerDir,
 } from './workers';
 
 let pid: string;
 let viteServer: ReturnType<typeof createWorkerFork>;
+const runtime = new MeteorViteRuntime({ architecture: 'web.browser' });
 
 if (Meteor.isDevelopment) {
+    
     WebAppInternals.registerBoilerplateDataCallback('meteor-vite', (request: HTTP.IncomingMessage, data: BoilerplateData) => {
         const { host, port, entryFile, ready } = getConfig();
         if (ready) {
@@ -39,11 +40,7 @@ if (Meteor.isDevelopment) {
     WebApp.connectHandlers.use('/__meteor_runtime_config.js', (req, res, next) => {
         res.setHeader('Content-Type', 'application/javascript')
         res.writeHead(200);
-        
-        const meteorRuntimeConfig: MeteorRuntimeConfig = getRuntimeConfig('web.browser');
-        const config = Object.assign({}, { DDP_DEFAULT_CONNECTION_URL: meteorRuntimeConfig.ROOT_URL }, meteorRuntimeConfig);
-        
-        res.end(`__meteor_runtime_config__ = JSON.parse(decodeURIComponent(${WebApp.encodeRuntimeConfig(config)}));`);
+        res.end(runtime.initTemplate());
     })
     
     Meteor.startup(() => {
@@ -116,7 +113,7 @@ function createViteServer() {
         method: 'vite.startDevServer',
         params: [{
             packageJson: getProjectPackageJson(),
-            meteorRuntimeConfig: getRuntimeConfig('web.browser'),
+            meteorRuntimeConfig: runtime.config,
         }]
     });
     
