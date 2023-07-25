@@ -10,7 +10,7 @@ const tempDir = getTempDir();
 import pc from 'picocolors';
 
 export default class BuildResult {
-    protected readonly payload: BuildPayload;
+    public readonly payload: BuildPayload;
     protected readonly entryFile: EntryFiles;
     protected readonly projectRoot: string;
     protected readonly tempAssetDir: string;

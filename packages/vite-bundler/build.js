@@ -165,20 +165,54 @@ try {
   console.log(pc.green(`⚡️ Build ready (${Math.round((endTime - startTime) * 100) / 100}ms)`))
 
 
-  class SSRCompiler {
-    processFilesForTarget (files) {
-      files.forEach(file => {
-        const filePath = file.getPathInPackage().replace(/vite\/vite-(client|server)\//g, '');
+  class MeteorViteCompiler {
+    constructor({ mode }) {
+      this.mode = mode;
+    }
 
-        if (!file.getPathInPackage().startsWith('vite/vite-client')) {
-          return;
-        }
+    _processForSSR(file) {
+      const filePath = file.getPathInPackage().replace(/vite\/vite-(client|server)\//g, '');
 
-        file.addAsset({
-          path: filePath,
-          data: file.getContentsAsBuffer(),
-        })
+      if (!file.getPathInPackage().startsWith('vite/vite-client')) {
+        return;
+      }
+
+      file.addAsset({
+        path: filePath,
+        data: file.getContentsAsBuffer(),
       })
+    }
+
+    _processForClient(file) {
+      switch (path.extname(file.getBasename())) {
+        case '.js':
+        case '.mjs':
+          file.addJavaScript({
+            path: file.getPathInPackage(),
+            data: file.getContentsAsString(),
+          })
+          break
+        case '.css':
+          file.addStylesheet({
+            path: file.getPathInPackage(),
+            data: file.getContentsAsString(),
+          })
+          break
+        default:
+          file.addAsset({
+            path: file.getPathInPackage(),
+            data: file.getContentsAsBuffer(),
+          })
+      }
+    }
+
+    processFilesForTarget (files) {
+      if (this.mode === 'ssr') {
+        files.forEach(file => this._processForSSR(file));
+        return;
+      }
+
+      files.forEach((file) => this._processForClient(file));
     }
 
     afterLink () {
@@ -193,7 +227,7 @@ try {
   Plugin.registerCompiler({
     extensions: [],
     filenames: [...assetFileNames],
-  }, () => new SSRCompiler())
+  }, () => new MeteorViteCompiler({ mode: buildResult.payload.meteorViteConfig.mode }))
 } catch (e) {
   throw e
 } finally {
