@@ -22,11 +22,11 @@
 
 <script lang="ts" setup>
 import { Meteor } from 'meteor/meteor';
-import { Methods, Collection, Publications } from '../../../api/chat/index';
+import Chat from '../../../api/chat/index';
 import { ref } from 'vue';
 const message = ref('');
 function send() {
-    Methods.send(message.value);
+    Chat.methods.send(message.value);
     message.value = '';
 }
 function formatTimestamp(time: number) {
@@ -40,8 +40,8 @@ import { Tracker } from 'meteor/tracker';
 const messages = ref([]);
 
 Tracker.autorun(() => {
-    const sub = Publications.all();
-    messages.value = Collection.find().fetch();
+    const sub = Chat.subscribe.all();
+    messages.value = Chat.collection.find().fetch();
     console.log(messages.value);
 })
 </script>
