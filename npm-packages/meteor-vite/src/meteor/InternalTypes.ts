@@ -62,3 +62,5 @@ export interface MeteorClientProgram {
     PUBLIC_SETTINGS: any;
     meteorRuntimeConfig: string; // JSON parses to > MeteorRuntimeConfig
 }
+
+export type MeteorArchitecture = 'web.browser' | 'web.browser.legacy' | 'server' | string;

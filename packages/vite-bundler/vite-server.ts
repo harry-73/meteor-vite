@@ -1,23 +1,24 @@
+import type { NextHandleFunction } from 'connect';
 import type HTTP from 'http';
 import { Meteor } from 'meteor/meteor';
 import { WebApp, WebAppInternals } from 'meteor/webapp';
-import { MeteorManifest, MeteorRuntimeConfig } from '../../npm-packages/meteor-vite/src/meteor/InternalTypes';
+import {
+    MeteorArchitecture,
+    MeteorManifest,
+    MeteorRuntimeConfig,
+} from '../../npm-packages/meteor-vite/src/meteor/InternalTypes';
 import { getConfig, MeteorViteConfig, ViteConnection, } from './loading/vite-connection-handler';
 import { MeteorViteRuntime } from './server/MeteorViteRuntime';
 import ViteDevServer from './server/ViteDevServer';
 import WatchLocalDependencies from './server/WatchLocalDependencies';
 
+WebApp.connectHandlers.use('__meteor-vite/meteor/web.browser/__meteor_runtime_config__.js', runtimeTemplate('web.browser'))
+WebApp.connectHandlers.use('__meteor-vite/meteor/web.browser.legacy/__meteor_runtime_config__.js', runtimeTemplate('web.browser.legacy'))
 
 if (Meteor.isDevelopment) {
     const server = new ViteDevServer(
         new MeteorViteRuntime({ architecture: 'web.browser' })
     );
-    
-    WebApp.connectHandlers.use('/__meteor_runtime_config.js', (req, res, next) => {
-        res.setHeader('Content-Type', 'application/javascript')
-        res.writeHead(200);
-        res.end(server.runtime.initTemplate());
-    })
     
     WebAppInternals.registerBoilerplateDataCallback('meteor-vite', (request: HTTP.IncomingMessage, data: BoilerplateData) => {
         const { host, port, entryFile, ready } = getConfig();
@@ -50,6 +51,16 @@ if (Meteor.isDevelopment) {
     }
     
     Meteor.startup(() => server.start());
+}
+
+function runtimeTemplate(architecture: MeteorArchitecture): NextHandleFunction {
+    const runtime = new MeteorViteRuntime({ architecture });
+    
+    return (req, res) => {
+        res.setHeader('Content-Type', 'application/javascript')
+        res.writeHead(200);
+        res.end(runtime.initTemplate());
+    }
 }
 
 interface BoilerplateData {
