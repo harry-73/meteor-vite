@@ -4,6 +4,8 @@ import { Mongo } from 'meteor/mongo';
 /**
  * Just a handy helper function for quickly composing new type-safe Meteor methods and publications.
  * You can of course use the traditional Meteor.publish(...) and Meteor.methods(...) approach if you prefer that.
+ *
+ * You may not want to use this in production as your service code may be included in your client bundle.
  */
 export function CreateService<
     Methods extends Record<string, (...params: any[]) => unknown>,
