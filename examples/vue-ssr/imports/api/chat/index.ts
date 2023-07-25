@@ -1,39 +1,24 @@
+import { CreateService } from '/imports/api/Factory';
 import { Meteor } from 'meteor/meteor';
-import { Mongo } from 'meteor/mongo';
 
-export const CollectionName = 'chat';
-export const Collection = new Mongo.Collection<{ message: string, timestamp: number }>(CollectionName);
-export const Methods = {
-    send(message: unknown) {
-        if (Meteor.isServer) {
-            if (typeof message !== 'string') {
-                throw new Meteor.Error('Your message needs to be a plain string!');
+export default CreateService<{ message: string, timestamp: number }>({
+    name: 'chat',
+    publications(collection) {
+        return {
+            all() {
+                return collection.find();
             }
-            return Collection.insert({ message, timestamp: Date.now() });
         }
-        
-        Meteor.call(`${CollectionName}.send`, message, (err) => {
-            if (err) {
-                throw err;
-            }
-        })
-    }
-};
-export const Publications = {
-    'all'() {
-        if (Meteor.isServer) {
-            return Collection.find();
+    },
+    methods(collection) {
+        return {
+            send(message: unknown): void {
+                if (typeof message !== 'string') {
+                    throw new Meteor.Error('Your message needs to be a plain string!');
+                }
+                
+                collection.insert({ message, timestamp: Date.now() })
+            },
         }
-        
-        return Meteor.subscribe(`${CollectionName}.all`);
     }
-}
-
-if (Meteor.isServer) {
-    Meteor.methods(
-        Object.fromEntries(Object.entries(Methods).map(([method, handler]) => [`${CollectionName}.${method}`, handler]))
-    )
-    Object.entries(Publications).forEach(([name, handler]) => {
-        Meteor.publish(`${CollectionName}.${name}`, handler);
-    })
-}
+})
