@@ -1,30 +1,23 @@
-import FS from 'fs';
 import type HTTP from 'http';
 import { Meteor } from 'meteor/meteor';
 import { WebApp, WebAppInternals } from 'meteor/webapp';
-import Path from 'path';
 import { MeteorManifest, MeteorRuntimeConfig } from '../../npm-packages/meteor-vite/src/meteor/InternalTypes';
-import {
-    buildConnectionUri,
-    DevConnectionLog,
-    getConfig,
-    MeteorViteConfig,
-    setConfig,
-    ViteConnection,
-} from './loading/vite-connection-handler';
-import {
-    createWorkerFork,
-    getProjectPackageJson,
-    isMeteorIPCMessage, MeteorViteRuntime,
-    onTeardown,
-    workerDir,
-} from './workers';
+import { getConfig, MeteorViteConfig, ViteConnection, } from './loading/vite-connection-handler';
+import ViteDevServer from './server/vite-dev-server';
+import WatchLocalDependencies from './server/watch-local-dependencies';
+import { MeteorViteRuntime, } from './workers';
 
-let pid: string;
-let viteServer: ReturnType<typeof createWorkerFork>;
-const runtime = new MeteorViteRuntime({ architecture: 'web.browser' });
 
 if (Meteor.isDevelopment) {
+    const server = new ViteDevServer(
+        new MeteorViteRuntime({ architecture: 'web.browser' })
+    );
+    
+    WebApp.connectHandlers.use('/__meteor_runtime_config.js', (req, res, next) => {
+        res.setHeader('Content-Type', 'application/javascript')
+        res.writeHead(200);
+        res.end(server.runtime.initTemplate());
+    })
     
     WebAppInternals.registerBoilerplateDataCallback('meteor-vite', (request: HTTP.IncomingMessage, data: BoilerplateData) => {
         const { host, port, entryFile, ready } = getConfig();
@@ -37,131 +30,26 @@ if (Meteor.isDevelopment) {
         }
     });
     
-    WebApp.connectHandlers.use('/__meteor_runtime_config.js', (req, res, next) => {
-        res.setHeader('Content-Type', 'application/javascript')
-        res.writeHead(200);
-        res.end(runtime.initTemplate());
-    })
-    
-    Meteor.startup(() => {
-        viteServer = createViteServer();
-    })
-    
-    /**
-     * Relay any IPC messages from the Meteor daemon to the Meteor-Vite worker to handle client refresh notices.
-     */
-    process.on('message', (message) => {
-        if (!isMeteorIPCMessage(message)) return;
-        viteServer.call({
-            method: 'meteor.ipcMessage',
-            params: [message],
-        })
-    })
-    
     Meteor.publish(ViteConnection.publication, () => {
         return MeteorViteConfig.find(ViteConnection.configSelector);
     });
     
     Meteor.methods({
         [ViteConnection.methods.refreshConfig]() {
-            DevConnectionLog.info('Refreshing configuration from Vite dev server...')
-            viteServer.call({
-                method: 'vite.getDevServerConfig',
-                params: [],
-            });
-            return getConfig();
+            return server.refreshConfig();
         }
-    })
+    });
     
     /**
      * Builds the 'meteor-vite' npm package where the worker and Vite server is kept.
      * Primarily to ease the testing process for the Vite plugin.
      */
     if (process.env.METEOR_VITE_TSUP_BUILD_WATCHER === 'true') {
-        createMeteorViteBundleWatcher();
+        const watcher = new WatchLocalDependencies({ viteServer: server });
+        Meteor.startup(() => watcher.start());
     }
-}
-
-function createViteServer() {
-    DevConnectionLog.info('Starting Vite server...');
-    let emittedReadyState = false;
-    const viteServer = createWorkerFork({
-        viteConfig(config) {
-            const newConfig = setConfig(config);
-            if (newConfig.ready && !emittedReadyState) {
-                emittedReadyState = true;
-                const dataLine = `    %s:\t%s\t\x1b[2m(%s)\x1b[22m`
-                const serverTypes = newConfig.mode !== 'bundler'
-                                    ? { meteor: 'DDP Server', vite: 'App Server' }
-                                    : { meteor: 'App Server', vite: 'HMR' };
-                console.log();
-                DevConnectionLog.info(
-                    `[Meteor-Vite] %s\n${dataLine}\n${dataLine}`,
-                    `Vite is ready for connections!\n`,
-                    'Meteor Server', Meteor.absoluteUrl('/'), serverTypes.meteor,
-                    'Vite Server', buildConnectionUri(newConfig), serverTypes.vite,
-                );
-                console.log();
-            }
-        },
-        refreshNeeded() {
-            DevConnectionLog.info('Some lazy-loaded packages were imported, please refresh')
-        }
-    });
     
-    viteServer.call({
-        method: 'vite.startDevServer',
-        params: [{
-            packageJson: getProjectPackageJson(),
-            meteorRuntimeConfig: runtime.config,
-        }]
-    });
-    
-    WebApp.addUpdatedNotifyHook((data) => {
-        viteServer.call({
-            method: 'meteor.setRuntimeConfig',
-            params: [data.runtimeConfig],
-        })
-    })
-    
-    return viteServer;
-}
-
-function createMeteorViteBundleWatcher() {
-    const packageBuilder = createWorkerFork({});
-    let restartTimeout: ReturnType<typeof setTimeout>;
-    let lastRestart = Date.now();
-    packageBuilder.call({
-        method: 'tsup.watchMeteorVite',
-        params: [],
-    });
-    
-    const recreateViteServer = Meteor.bindEnvironment(function(event: FS.WatchEventType) {
-        if (!pid) {
-            pid = (Math.random() * 1000).toFixed(2)
-        }
-        
-        console.log(`pid: ${pid} Filesystem event from worker: ${event}`);
-        console.log('Restarting worker...');
-        viteServer.call({
-            method: 'ipc.teardown',
-            params: [],
-        })
-        viteServer = createViteServer();
-    });
-    
-    const watcher = FS.watch(Path.join(workerDir, 'dist'), (event) => {
-        clearTimeout(restartTimeout);
-        if (Date.now() - lastRestart < 5_000) {
-            return console.log('Server just started. Skipping restart to avoid immediate restart');
-        }
-        restartTimeout = setTimeout(() => recreateViteServer(event), 1000);
-    });
-    
-    onTeardown(() => {
-        watcher.close();
-        console.log('Removed meteor-vite bundle watcher');
-    })
+    Meteor.startup(() => server.start());
 }
 
 interface BoilerplateData {
