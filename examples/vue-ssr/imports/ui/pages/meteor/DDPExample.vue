@@ -32,7 +32,7 @@ const messages = ref([]);
 TrackerSSR.autorun(() => {
     const sub = Chat.subscribe.all();
     messages.value = Chat.collection.find().fetch();
-    console.log({ TrackerChatMessages: messages });
+    console.log({ TrackerChatMessages: messages.value });
 })
 
 function send() {
