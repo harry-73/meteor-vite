@@ -85,4 +85,9 @@ export interface StubValidationSettings {
      * @default false
      */
     disabled?: boolean;
+    
+    /**
+     * Emit debug messages to the console whenever a stub is validated.
+     */
+    debug?: boolean;
 }

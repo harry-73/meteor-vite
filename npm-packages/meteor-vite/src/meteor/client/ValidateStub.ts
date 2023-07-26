@@ -11,13 +11,15 @@ import { StubValidationSettings } from '../../vite/MeteorViteConfig';
  * TODO: Read expected 'typeof' value from package exports at the parser and compare against the expected type
  * rather than just an undefined check.
  */
-export function validateStub(stubbedPackage: any, { exportKeys, packageName, requestId, warnOnly }: StubValidatorOptions) {
-    console.debug('Meteor-Vite package validation:', {
-        packageName,
-        stubbedPackage,
-        exportKeys,
-        warnOnly,
-    });
+export function validateStub(stubbedPackage: any, { exportKeys, packageName, requestId, warnOnly, debug }: StubValidatorOptions) {
+    if (debug) {
+        console.debug('Meteor-Vite package validation:', {
+            packageName,
+            stubbedPackage,
+            exportKeys,
+            warnOnly,
+        });
+    }
     
     const errors: Error[] = [];
     
@@ -75,7 +77,7 @@ class UndefinedExportException extends MeteorViteError {}
 
 type ErrorMetadata = Pick<StubValidatorOptions, 'packageName' | 'requestId'> & { exportName?: string };
 
-export interface StubValidatorOptions extends Pick<StubValidationSettings, 'warnOnly'>{
+export interface StubValidatorOptions extends Pick<StubValidationSettings, 'warnOnly' | 'debug'>{
     requestId: string;
     packageName: string;
     
