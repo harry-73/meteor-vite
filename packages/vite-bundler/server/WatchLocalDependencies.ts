@@ -18,7 +18,6 @@ export default class WatchLocalDependencies {
     }
     
     protected restartServer() {
-        console.log(`pid: ${this.pid} Filesystem event from worker: ${event}`);
         console.log('Restarting dev server worker...');
         this.server.stop();
         this.server.start();
@@ -45,6 +44,7 @@ export default class WatchLocalDependencies {
                 return console.log('Server just started. Skipping restart to avoid immediate restart');
             }
             
+            console.log(`pid: ${this.pid} Filesystem event from worker: ${event}`);
             this.restartCountdown = setTimeout(() => this.restartServer(), 1000);
         });
         
