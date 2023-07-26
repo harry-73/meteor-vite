@@ -1,5 +1,6 @@
 import { Meteor } from 'meteor/meteor';
 import { Mongo } from 'meteor/mongo';
+import { Tracker } from 'meteor/tracker';
 
 const MeteorReady = new Promise<void>((resolve, reject) => {
     Meteor.startup(() => resolve())
@@ -68,6 +69,22 @@ export function CreateService<
         methods,
         subscribe,
         collection,
+    }
+}
+
+/**
+ * Cross-platform tracker for server-side rendered components.
+ * As Meteor doesn't allow trackers to run on the server, we just immediately fire the handler once when Meteor is
+ * ready if the current environment is the server. On the client we just run the tracker like normal.
+ * @type {{autorun(handler: () => void): (void | any)}}
+ */
+export const TrackerSSR = {
+    autorun(handler: () => void) {
+        if (Meteor.isServer) {
+            return handler();
+        }
+        
+        return Tracker.autorun(handler);
     }
 }
 

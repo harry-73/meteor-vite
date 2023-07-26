@@ -5,7 +5,7 @@
   </div>
   <div>
     <h5>Last session ID</h5>
-    <pre>{{ Meteor.connection.lastSessionId }}</pre>
+    <pre>{{ Meteor.connection?.lastSessionId }}</pre>
   </div>
   <form @submit.prevent="send">
     <h5>Meteor Chat</h5>
@@ -36,10 +36,11 @@ function formatTimestamp(time: number) {
 </script>
 
 <script lang="ts">
-import { Tracker } from 'meteor/tracker';
+import { TrackerSSR } from '/imports/api/Factory';
+
 const messages = ref([]);
 
-Tracker.autorun(() => {
+TrackerSSR.autorun(() => {
     const sub = Chat.subscribe.all();
     messages.value = Chat.collection.find().fetch();
     console.log(messages.value);
