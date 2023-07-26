@@ -5,7 +5,7 @@ const MeteorReady = new Promise<void>((resolve, reject) => {
     Meteor.startup(() => resolve())
 });
 
-const ServiceMap = new Map<string, Mongo.Collection<any>>();
+const ServiceMap = new Map<string, { collection: unknown, subscribe: unknown, methods: unknown }>();
 
 /**
  * Just a handy helper function for quickly composing new type-safe Meteor methods and publications.
@@ -22,20 +22,12 @@ export function CreateService<
     publications(collection: Collection): Publications;
     methods(collection: Collection): Methods;
 }) {
+    type Result = APIService<Methods, Publications, Collection>;
     const { namespace, getCollection } = service.setup();
-    const serviceMap = ServiceMap as Map<string, Collection>;
-    let collection: Collection | undefined = serviceMap.get(namespace);
+    const existingService = ServiceMap.get(namespace) as Result | undefined;
     
-    if (!collection) {
-        try {
-            collection = serviceMap.set(namespace, getCollection(namespace)).get(namespace)!
-        } catch (error: unknown) {
-            if (error instanceof Error && error.message.startsWith('There is already a collection')) {
-                collection = serviceMap.get(namespace)!;
-            } else {
-                throw error;
-            }
-        }
+    if (existingService) {
+        return existingService;
     }
     
     const subscribe = {} as {
@@ -45,15 +37,22 @@ export function CreateService<
         [key in keyof Methods]: (...params: Parameters<Methods[key]>) => ReturnType<Methods[key]>
     };
     
-    Object.entries(service.methods(collection)).forEach(([name, handler]: [keyof Methods, any]) => {
-        const methodName = `${namespace}.${name.toString()}`
-        
-        if (Meteor.isServer) {
-            Meteor.methods({ [methodName]: handler })
+    let collection = ServiceMap.get(namespace)?.collection as Result['collection'] | undefined;
+    
+    try {
+        if (!collection) {
+            collection = getCollection(namespace);
         }
-        
-        methods[name] = (...params) => Meteor.call(methodName, ...params);
-    })
+    } catch (error: unknown) {
+        if (error instanceof Error && error.message.startsWith('There is already a collection')) {
+            collection = ServiceMap.get(namespace)?.collection as Result['collection'];
+        } else {
+            throw error;
+        }
+    }
+    
+    ServiceMap.set(namespace, { collection, subscribe, methods });
+    
     
     Object.entries(service.publications(collection)).forEach(([name, handler]: [keyof Publications, any]) => {
         const publicationName = `${namespace}.${name.toString()}`
@@ -69,5 +68,19 @@ export function CreateService<
         methods,
         subscribe,
         collection,
+    }
+}
+
+type APIService<
+    Methods extends Record<string, (...params: any[]) => unknown>,
+    Publications extends Record<string, (...params: any[]) => Mongo.Cursor<unknown>>,
+    Collection extends Mongo.Collection<any>,
+> = {
+    collection: Collection;
+    methods: {
+        [key in keyof Methods]: (...params: Parameters<Methods[key]>) => ReturnType<Methods[key]>
+    };
+    subscribe: {
+        [key in keyof Publications]: (...params: Parameters<Publications[key]>) => Promise<Meteor.SubscriptionHandle>
     }
 }
