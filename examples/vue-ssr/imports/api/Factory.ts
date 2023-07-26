@@ -79,13 +79,15 @@ export function CreateService<
  * @type {{autorun(handler: () => void): (void | any)}}
  */
 export const TrackerSSR = {
-    autorun(handler: () => void) {
+    autorun: Meteor.bindEnvironment(() => (handler: () => void) => {
+        Promise.await(MeteorReady);
+        
         if (Meteor.isServer) {
             return handler();
         }
         
         return Tracker.autorun(handler);
-    }
+    })
 }
 
 type APIService<
