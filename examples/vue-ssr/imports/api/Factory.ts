@@ -5,7 +5,7 @@ const MeteorReady = new Promise<void>((resolve, reject) => {
     Meteor.startup(() => resolve())
 });
 
-const services = new Map<string, Mongo.Collection<any>>();
+const ServiceMap = new Map<string, Mongo.Collection<any>>();
 
 /**
  * Just a handy helper function for quickly composing new type-safe Meteor methods and publications.
@@ -23,7 +23,20 @@ export function CreateService<
     methods(collection: Collection): Methods;
 }) {
     const { namespace, getCollection } = service.setup();
-    const collection = (services.get(namespace) || services.set(namespace, getCollection(namespace)).get(namespace)!) as Collection
+    const serviceMap = ServiceMap as Map<string, Collection>;
+    let collection: Collection | undefined = serviceMap.get(namespace);
+    
+    if (!collection) {
+        try {
+            collection = serviceMap.set(namespace, getCollection(namespace)).get(namespace)!
+        } catch (error: unknown) {
+            if (error instanceof Error && error.message.startsWith('There is already a collection')) {
+                collection = serviceMap.get(namespace)!;
+            } else {
+                throw error;
+            }
+        }
+    }
     
     const subscribe = {} as {
         [key in keyof Publications]: (...params: Parameters<Publications[key]>) => Promise<Meteor.SubscriptionHandle>
