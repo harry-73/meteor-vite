@@ -3,8 +3,14 @@ import { Meteor } from 'meteor/meteor';
 import { Mongo } from 'meteor/mongo';
 
 export default CreateService({
-    collection() {
-        return new Mongo.Collection<{ message: string, timestamp: number }>('chat')
+    setup() {
+        return {
+            namespace: 'chat',
+            getCollection: (name) => new Mongo.Collection<{
+                message: string,
+                timestamp: number
+            }>(name)
+        }
     },
     publications(collection) {
         return {

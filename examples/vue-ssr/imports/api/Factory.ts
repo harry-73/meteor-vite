@@ -1,6 +1,12 @@
 import { Meteor } from 'meteor/meteor';
 import { Mongo } from 'meteor/mongo';
 
+const MeteorReady = new Promise<void>((resolve, reject) => {
+    Meteor.startup(() => resolve())
+});
+
+const services = new Map<string, Mongo.Collection<any>>();
+
 /**
  * Just a handy helper function for quickly composing new type-safe Meteor methods and publications.
  * You can of course use the traditional Meteor.publish(...) and Meteor.methods(...) approach if you prefer that.
@@ -10,18 +16,17 @@ import { Mongo } from 'meteor/mongo';
 export function CreateService<
     Methods extends Record<string, (...params: any[]) => unknown>,
     Publications extends Record<string, (...params: any[]) => Mongo.Cursor<unknown>>,
-    Schema extends object,
     Collection extends Mongo.Collection<any>,
 >(service: {
-    collection(): Collection;
+    setup(): { namespace: string, getCollection: (name: string) => Collection };
     publications(collection: Collection): Publications;
     methods(collection: Collection): Methods;
 }) {
-    const collection = service.collection() as Collection & { _name: string };
-    const namespace = collection._name;
+    const { namespace, getCollection } = service.setup();
+    const collection = (services.get(namespace) || services.set(namespace, getCollection(namespace)).get(namespace)!) as Collection
     
     const subscribe = {} as {
-        [key in keyof Publications]: (...params: Parameters<Publications[key]>) => Meteor.SubscriptionHandle
+        [key in keyof Publications]: (...params: Parameters<Publications[key]>) => Promise<Meteor.SubscriptionHandle>
     };
     const methods = {} as {
         [key in keyof Methods]: (...params: Parameters<Methods[key]>) => ReturnType<Methods[key]>
@@ -44,7 +49,7 @@ export function CreateService<
             Meteor.publish(publicationName, handler);
         }
         
-        subscribe[name] = (...params) => Meteor.subscribe(publicationName, ...params);
+        subscribe[name] = (...params) => MeteorReady.then(() => Meteor.subscribe(publicationName, ...params));
     });
     
     return {
