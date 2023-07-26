@@ -8,6 +8,7 @@ import {
 import { createWorkerFork, getProjectPackageJson, isMeteorIPCMessage } from '../workers';
 import { WebApp } from 'meteor/webapp';
 import { MeteorViteRuntime } from './MeteorViteRuntime';
+import pc from 'picocolors';
 
 export default class ViteDevServer {
     protected server?: ReturnType<typeof createWorkerFork>;
@@ -61,16 +62,16 @@ export default class ViteDevServer {
                     return;
                 }
                 emittedReadyState = true;
-                const dataLine = `    %s:\t%s\t\x1b[2m(%s)\x1b[22m`
+                const dataLine = `    %s:\t%s\t${pc.bold('%s')}`
                 const serverTypes = newConfig.mode !== 'bundler'
-                                    ? { meteor: 'DDP Server', vite: 'App Server' }
-                                    : { meteor: 'App Server', vite: 'HMR' };
+                                    ? { meteor: 'DDP Server', vite: pc.cyan('App Server') }
+                                    : { meteor: pc.yellow('App Server'), vite: 'HMR' };
                 console.log();
                 DevConnectionLog.info(
                     `[Meteor-Vite] %s\n${dataLine}\n${dataLine}`,
                     `Vite is ready for connections!\n`,
-                    'Meteor Server', Meteor.absoluteUrl('/'), serverTypes.meteor,
-                    'Vite Server', buildConnectionUri(newConfig), serverTypes.vite,
+                    'Meteor', Meteor.absoluteUrl('/'), serverTypes.meteor,
+                    'Vite', buildConnectionUri(newConfig), serverTypes.vite,
                 );
                 console.log();
             },
