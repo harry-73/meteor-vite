@@ -11,7 +11,7 @@ WebAppInternals.registerBoilerplateDataCallback('ssr-server', async (req, data) 
         urlOriginal: req.url.href
     }
     
-    console.log('Received request:', { pageContextInit, data });
+    console.log('Received request:', { pageContextInit });
     
     const { httpResponse } = await renderPage(pageContextInit)
     
