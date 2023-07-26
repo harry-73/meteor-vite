@@ -180,6 +180,12 @@ try {
             data: file.getContentsAsString(),
           })
           break
+        case '.json':
+          file.addJavaScript({
+            path: targetPath,
+            data: `module.exports = ${file.getContentsAsString()}`,
+          })
+          break;
         case '.css':
           file.addStylesheet({
             path: targetPath,
