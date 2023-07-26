@@ -170,49 +170,44 @@ try {
       this.mode = mode;
     }
 
-    _processForSSR(file) {
-      const filePath = file.getPathInPackage().replace(/vite\/vite-(client|server)\//g, '');
-
-      if (!file.getPathInPackage().startsWith('vite/vite-client')) {
-        return;
-      }
-
-      file.addAsset({
-        path: filePath,
-        data: file.getContentsAsBuffer(),
-      })
-    }
-
-    _processForClient(file) {
+    _processFile(file, targetPath) {
       switch (path.extname(file.getBasename())) {
         case '.js':
+        case '.cjs':
         case '.mjs':
           file.addJavaScript({
-            path: file.getPathInPackage(),
+            path: targetPath,
             data: file.getContentsAsString(),
           })
           break
         case '.css':
           file.addStylesheet({
-            path: file.getPathInPackage(),
+            path: targetPath,
             data: file.getContentsAsString(),
           })
           break
         default:
           file.addAsset({
-            path: file.getPathInPackage(),
+            path: targetPath,
             data: file.getContentsAsBuffer(),
           })
       }
     }
 
     processFilesForTarget (files) {
-      if (this.mode === 'ssr') {
-        files.forEach(file => this._processForSSR(file));
-        return;
-      }
+      files.forEach((file) => {
+        const targetPath = file.getPathInPackage().replace('_vite_.', '');
 
-      files.forEach((file) => this._processForClient(file));
+        if (this.mode === 'ssr' && file.getPathInPackage().startsWith('vite/vite-client')) {
+          file.addAsset({
+            path: targetPath.replace(/vite\/vite-(client|server)\//g, ''),
+            data: file.getContentsAsBuffer(),
+          })
+          return;
+        }
+
+        this._processFile(file, targetPath);
+      });
     }
 
     afterLink () {

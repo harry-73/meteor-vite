@@ -84,10 +84,11 @@ export default class BuildResult {
         for (const file of files) {
             file.fileName = `${targetDirname}/${file.fileName}`;
             const from = file.absolutePath;
-            const to = Path.join(this.tempAssetDir, file.fileName);
+            const destination = Path.parse(Path.join(this.tempAssetDir, file.fileName));
+            const to = Path.join(destination.dir, `/_vite_.${destination.base}`);
             
             FS.ensureDirSync(Path.dirname(to))
-            assets.add(file.fileName);
+            assets.add(Path.basename(to));
             
             if (['.js', '.mjs', '.cjs'].includes(Path.extname(from))) {
                 // Transpile to Meteor target (Dynamic import support)
@@ -116,9 +117,9 @@ export default class BuildResult {
         }
         
         // Patch meteor entry
-        entryFile.addImports({
-            imports: entryAssets.map((asset) => Path.join(this.tempAssetDir, asset.fileName))
-        });
+        // entryFile.addImports({
+        //     imports: entryAssets.map((asset) => Path.join(this.tempAssetDir, asset.fileName))
+        // });
         
         const columnWidth = 80;
         console.log(pc.bgCyan(`./${entryFile.relativePath}`));
