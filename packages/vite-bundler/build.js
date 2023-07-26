@@ -204,7 +204,7 @@ try {
       files.forEach((file) => {
         const targetPath = file.getPathInPackage().replace('_vite_.', '');
 
-        if (this.mode === 'ssr' && file.getPathInPackage().startsWith('vite/vite-client')) {
+        if (this.mode === 'ssr' && targetPath.includes('vite/vite-client')) {
           file.addAsset({
             path: targetPath.replace(/vite\/vite-(client|server)\//g, ''),
             data: file.getContentsAsBuffer(),
@@ -228,7 +228,7 @@ try {
   Plugin.registerCompiler({
     extensions: [],
     filenames: [...assetFileNames],
-  }, () => new MeteorViteCompiler({ mode: buildResult.payload.meteorViteConfig.mode }))
+  }, () => new MeteorViteCompiler({ mode: buildResult.payload.meteorViteConfig.viteMode }))
 } catch (e) {
   throw e
 } finally {
