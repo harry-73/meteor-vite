@@ -56,12 +56,19 @@ export function CreateService<
     
     Object.entries(service.methods(collection)).forEach(([name, handler]: [keyof Methods, any]) => {
         const methodName = `${namespace}.${name.toString()}`
-        
-        if (Meteor.isServer) {
-            Meteor.methods({ [methodName]: handler })
-        }
-        
         methods[name] = (...params) => Meteor.call(methodName, ...params);
+        
+        try {
+            if (Meteor.isServer) {
+                Meteor.methods({ [methodName]: handler })
+            }
+        } catch (error) {
+            if (error instanceof Error && error.message.startsWith('A method named')) {
+                console.warn('Skipping duplicate method declaration', { error });
+                return;
+            }
+            throw error;
+        }
     })
     
     Object.entries(service.publications(collection)).forEach(([name, handler]: [keyof Publications, any]) => {
