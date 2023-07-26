@@ -95,12 +95,15 @@ export default class EntryFile {
         // language=js
         return  `
 /**
- * [Vite-Bundler entrypoint injection]
+* [[BUILD-TIME IMPORTS]]
  * These imports are added by jorgenvatle:vite-bundler during a production build to force the Meteor bundler to accept
  * modules built by Vite.
  *
- * We don't have any good ways of cleaning up these files following a production build without interfering with the
- * module load-order and lazily loaded packages.
+ * We don't have any good way of cleaning up these imports after a production build without interfering with the
+ * module load-order and lazily loaded packages. If you have any suggestions on any hooks we can use to perform a
+ * cleanup after Meteor has finished bundling for all target environments, please do open a PR or issue.
+ *
+ * {@link https://github.com/JorgenVatle/meteor-vite/issues}
  *
  * [THESE IMPORTS SHOULD BE REMOVED] - Do not commit them into version control.
  *-*/
