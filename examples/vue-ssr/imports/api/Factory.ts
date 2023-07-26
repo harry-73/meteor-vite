@@ -54,6 +54,15 @@ export function CreateService<
     
     ServiceMap.set(namespace, { collection, subscribe, methods });
     
+    Object.entries(service.methods(collection)).forEach(([name, handler]: [keyof Methods, any]) => {
+        const methodName = `${namespace}.${name.toString()}`
+        
+        if (Meteor.isServer) {
+            Meteor.methods({ [methodName]: handler })
+        }
+        
+        methods[name] = (...params) => Meteor.call(methodName, ...params);
+    })
     
     Object.entries(service.publications(collection)).forEach(([name, handler]: [keyof Publications, any]) => {
         const publicationName = `${namespace}.${name.toString()}`
