@@ -14,7 +14,7 @@
         <div style="font-weight: 600; opacity: 0.8">- {{ message }}</div>
       </div>
     <div style="display: flex; gap: 1rem">
-      <input type="text" v-model="message" placeholder="Enter a message">
+      <input type="text" v-model="messageInput" placeholder="Enter a message">
       <button type="submit">Send</button>
     </div>
   </form>
@@ -23,26 +23,24 @@
 <script lang="ts" setup>
 import { Meteor } from 'meteor/meteor';
 import Chat from '../../../api/chat/index';
-import { ref } from 'vue';
-const message = ref('');
-function send() {
-    Chat.methods.send(message.value);
-    message.value = '';
-}
-function formatTimestamp(time: number) {
-    const date = new Date(time || 0);
-    return `${date.getHours()}:${date.getMinutes()}:${date.getSeconds()}`
-}
-</script>
-
-<script lang="ts">
 import { TrackerSSR } from '/imports/api/Factory';
+import { ref } from 'vue';
 
+const messageInput = ref('');
 const messages = ref([]);
 
 TrackerSSR.autorun(() => {
     const sub = Chat.subscribe.all();
     messages.value = Chat.collection.find().fetch();
-    console.log(messages.value);
+    console.log({ TrackerChatMessages: messages });
 })
+
+function send() {
+    Chat.methods.send(messageInput.value);
+    messageInput.value = '';
+}
+function formatTimestamp(time: number) {
+    const date = new Date(time || 0);
+    return `${date.getHours()}:${date.getMinutes()}:${date.getSeconds()}`
+}
 </script>
