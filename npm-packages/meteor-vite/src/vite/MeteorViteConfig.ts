@@ -88,6 +88,8 @@ export interface StubValidationSettings {
     
     /**
      * Emit debug messages to the console whenever a stub is validated.
+     * Remember to toggle visibility for debug messages in your browser's developer console. Chrome filters these
+     * out by default.
      */
     debug?: boolean;
 }
