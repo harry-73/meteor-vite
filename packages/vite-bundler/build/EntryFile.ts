@@ -106,9 +106,7 @@ export default class EntryFile {
  *-*/
  ${imports}
  /** End of vite-bundler production-imports **/
- 
- ${content}
-`.trim()
+ ${content}`.trim()
     }
 }
 
