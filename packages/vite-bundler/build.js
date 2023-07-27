@@ -175,9 +175,18 @@ try {
         case '.js':
         case '.cjs':
         case '.mjs':
+          // Transpile to Meteor target (Dynamic import support)
+          // @TODO don't use Babel
+          const babelOptions = Babel.getDefaultOptions()
+          babelOptions.babelrc = true
+          babelOptions.sourceMaps = true
+          babelOptions.filename = babelOptions.sourceFileName = file.getPathInPackage();
+
           file.addJavaScript({
             path: targetPath,
-            data: file.getContentsAsString(),
+            data: Babel.compile(file.getContentsAsString(), babelOptions, {
+              cacheDirectory: path.join(tempDir, '.babel-cache'),
+            }).code,
           })
           break
         case '.json':
@@ -209,7 +218,6 @@ try {
             path: targetPath.replace(/vite\/vite-(client|server)\//g, ''),
             data: file.getContentsAsBuffer(),
           })
-          return;
         }
 
         this._processFile(file, targetPath);

@@ -90,26 +90,11 @@ export default class BuildResult {
             FS.ensureDirSync(Path.dirname(to))
             assets.add(Path.basename(to));
             
-            if (['.js', '.mjs', '.cjs'].includes(Path.extname(from))) {
-                // Transpile to Meteor target (Dynamic import support)
-                // @TODO don't use Babel
-                const source = FS.readFileSync(from, 'utf8')
-                const babelOptions = Babel.getDefaultOptions()
-                babelOptions.babelrc = true
-                babelOptions.sourceMaps = true
-                babelOptions.filename = babelOptions.sourceFileName = from
-                const transpiled = Babel.compile(source, babelOptions, {
-                    cacheDirectory: Path.join(tempDir, '.babel-cache'),
-                })
-                FS.writeFileSync(to, transpiled.code, 'utf8')
-                
-                if (file.isEntry) {
-                    entryAssets.push(file);
-                }
-                
-            } else {
-                FS.copyFileSync(from, to)
+            if (file.isEntry) {
+                entryAssets.push(file);
             }
+            
+            FS.copyFileSync(from, to)
         }
         
         if (!entryAssets.length) {
@@ -117,9 +102,9 @@ export default class BuildResult {
         }
         
         // Patch meteor entry
-        // entryFile.addImports({
-        //     imports: entryAssets.map((asset) => Path.join(this.tempAssetDir, asset.fileName))
-        // });
+        entryFile.addImports({
+            imports: entryAssets.map((asset) => Path.join(this.tempAssetDir, asset.fileName))
+        });
         
         const columnWidth = 80;
         console.log(pc.bgCyan(`./${entryFile.relativePath}`));
