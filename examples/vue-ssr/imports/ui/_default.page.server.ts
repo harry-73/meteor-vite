@@ -1,7 +1,5 @@
 // See https://vite-plugin-ssr.com/data-fetching
 export const passToClient = ['pageProps', 'urlPathname'];
-import { WebApp } from 'meteor/webapp';
-import { Meteor } from 'meteor/meteor';
 
 import { renderToString as renderToString_ } from '@vue/server-renderer'
 import type { App } from 'vue'
@@ -31,7 +29,6 @@ export async function render(pageContext: PageContextServer) {
         <meta name="viewport" content="width=device-width, initial-scale=1.0" />
         <meta name="description" content="${desc}" />
         <title>${title}</title>
-        ${dangerouslySkipEscape(meteorSetupTemplate())}
       </head>
       <body>
         <div id="app">${dangerouslySkipEscape(appHtml)}</div>
@@ -44,19 +41,6 @@ export async function render(pageContext: PageContextServer) {
             // We can add some `pageContext` here, which is useful if we want to do page redirection https://vite-plugin-ssr.com/page-redirection
         }
     }
-}
-
-function meteorSetupTemplate(arc = 'web.browser') {
-    if (Meteor.isClient) return '';
-    
-    const clientPrograms = WebApp.clientPrograms[arc];
-    const clientScripts = clientPrograms.manifest.filter((program) => program.type === 'js').map((entry) => {
-        return `<script src="${entry.url}"></script>`
-    });
-    return [
-        `<script src="/__meteor-vite/meteor/__meteor_runtime_config__.js?arc=${arc}"></script>`,
-        ...clientScripts
-    ].join('\n')
 }
 
 async function renderToString(app: App) {
