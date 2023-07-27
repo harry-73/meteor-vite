@@ -64,7 +64,7 @@ export default CreateIPCInterface({
             server = await createServer({
                 configFile: resolveConfigFilePath(packageJson),
                 plugins: [
-                    MeteorStubs({ meteor, packageJson }),
+                    MeteorStubs({ meteor, packageJson, injectMeteorPrograms: true }),
                     InjectMeteorPrograms({ meteor }),
                     {
                         name: 'meteor-handle-restart',
