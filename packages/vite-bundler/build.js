@@ -214,10 +214,15 @@ try {
         const targetPath = file.getPathInPackage().replace('_vite_.', '');
 
         if (this.mode === 'ssr' && targetPath.includes('vite/vite-client')) {
+          if (path.extname(file.getBasename()) === '.json') {
+            this._processFile(file, targetPath);
+          }
+
           file.addAsset({
             path: targetPath.replace(/vite\/vite-(client|server)\//g, ''),
             data: file.getContentsAsBuffer(),
           })
+          return;
         }
 
         this._processFile(file, targetPath);
