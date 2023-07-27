@@ -31,8 +31,7 @@ export default CreateIPCInterface({
         
         
         const plugins = [
-            MeteorStubs({ meteor, packageJson, }),
-            InjectMeteorPrograms({ meteor }),
+            MeteorStubs({ meteor, packageJson, injectMeteorPrograms: false }),
         ]
         
         const outputs: BuildPayload['outputs'] = {
