@@ -12,10 +12,10 @@ export const TEMPLATE_GLOBAL_KEY = 'g';
  * Used to bridge imports for Meteor code that Vite doesn't have access to, to the below template that acts as a
  * proxy between Vite and Meteor's modules.
  */
-export function stubTemplate({ requestId, meteorPackage, importPath, usesMeteorFrontend = true, stubValidation: validationSettings }: {
+export function stubTemplate({ requestId, meteorPackage, importPath, injectMeteorPrograms = false, stubValidation: validationSettings }: {
     requestId: string;
     stubValidation?: StubValidationSettings,
-    usesMeteorFrontend?: boolean
+    injectMeteorPrograms?: boolean
     meteorPackage: MeteorPackage;
     importPath?: string;
 }) {
@@ -37,7 +37,7 @@ export function stubTemplate({ requestId, meteorPackage, importPath, usesMeteorF
      * Meteor app.
      * {@link MeteorViteMode}
      */
-    if (!usesMeteorFrontend) {
+    if (injectMeteorPrograms) {
         serializedPackage.imports.push(`import '${METEOR_CLIENT_IMPORTS_MODULE}';`);
     }
     

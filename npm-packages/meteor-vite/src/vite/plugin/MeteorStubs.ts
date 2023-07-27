@@ -48,7 +48,7 @@ export const MeteorStubs = setupPlugin(async (pluginSettings: PluginSettings) =>
                 requestId: request.context.id,
                 importPath: request.requestedModulePath,
                 stubValidation: resolvedConfig.meteor?.stubValidation,
-                usesMeteorFrontend: usesMeteorFrontend(resolvedConfig),
+                injectMeteorPrograms: !usesMeteorFrontend(resolvedConfig) && pluginSettings.injectMeteorPrograms,
                 meteorPackage,
             });
             
@@ -155,6 +155,11 @@ export interface PluginSettings {
      */
     packageJson: ProjectJson;
     
+    /**
+     * Whether we should include Meteor's source code in the resulting stubs.
+     * This is only really useful when using the Vite dev server as a Meteor frontend.
+     */
+    injectMeteorPrograms?: boolean;
 }
 
 /**
