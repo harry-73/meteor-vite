@@ -1,6 +1,6 @@
 import FS from 'fs';
 import Path from 'path';
-import { OutputAsset, OutputChunk, RollupOutput } from 'rollup';
+import { OutputAsset, OutputChunk, RollupOptions, RollupOutput } from 'rollup';
 import { build, LibraryOptions, PluginOption, resolveConfig } from 'vite';
 import { MeteorViteConfig } from '../../vite/MeteorViteConfig';
 import { MeteorStubs } from '../../vite';
@@ -80,6 +80,7 @@ async function runBuild({ viteConfig, viteOutDir, plugins, buildTarget }: {
     const entry = buildTarget === 'server'
                   ? viteConfig.meteor?.serverEntry
                   : viteConfig.meteor?.clientEntry;
+    const rollupOptions: RollupOptions = {}
     
     if (!entry) {
         throw new Error(`You need to specify a ${buildTarget} entrypoint in your Vite config! See: ${MeteorVitePackage.homepage}`);
@@ -87,6 +88,10 @@ async function runBuild({ viteConfig, viteOutDir, plugins, buildTarget }: {
     
     if (!ssr && buildTarget === 'server') {
         ssr = entry;
+    }
+    
+    if (buildTarget === 'server') {
+        rollupOptions.external = [/^meteor\//];
     }
     
     const results = await build({
@@ -99,9 +104,7 @@ async function runBuild({ viteConfig, viteOutDir, plugins, buildTarget }: {
             },
             outDir: viteOutDir,
             minify: false,
-            rollupOptions: {
-                external: [/^meteor\//],
-            }
+            rollupOptions,
         },
         plugins: [
             // Get fully resolved config to feed any potential changes back to the Meteor compiler.
