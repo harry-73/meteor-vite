@@ -33,6 +33,20 @@ export default class MeteorPackage implements Omit<ParsedPackage, 'packageScopeE
         })
     }
     
+    public toJson() {
+        const { name, modules, mainModulePath, packageScopeExports, packageId } = this;
+        return JSON.stringify({
+            name,
+            modules,
+            packageScopeExports: packageScopeExports.map(({ packageName, key }) => ({ packageName, key })),
+            packageId,
+            mainModulePath,
+            serialized: {
+                mainModule: this.serialize({}),
+            }
+        }, null, 2);
+    }
+    
     public static async parse(...options: Parameters<typeof parseMeteorPackage>) {
         const { result, timeSpent } = await parseMeteorPackage(...options);
         return new MeteorPackage(result, { timeSpent });

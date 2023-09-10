@@ -58,7 +58,7 @@ export const MeteorStubs = setupPlugin(async (pluginSettings: PluginSettings) =>
             });
             
             if (resolvedConfig.meteor?.debug) {
-                await storeDebugSnippet({ request, stubTemplate: template })
+                await storeDebugSnippet({ request, stubTemplate: template, meteorPackage })
             }
             
             return template;
@@ -66,19 +66,22 @@ export const MeteorStubs = setupPlugin(async (pluginSettings: PluginSettings) =>
     }
 })
 
-async function storeDebugSnippet({ request, stubTemplate }: {
+async function storeDebugSnippet({ request, stubTemplate, meteorPackage }: {
     request: ViteLoadRequest,
-    stubTemplate: string
+    stubTemplate: string,
+    meteorPackage: MeteorPackage,
 }) {
     const baseDir = Path.join(process.cwd(), '.meteor-vite', request.context.file.packageId.replace(':', '_'));
     const templatePath = Path.join(baseDir, request.context.file.importPath || '', 'template.js');
     const packagePath = Path.join(baseDir, 'package.js');
+    const parserPath = Path.join(baseDir, 'parsed.json');
     
     await FS.mkdir(Path.dirname(templatePath), { recursive: true });
     
     await Promise.all([
         FS.writeFile(templatePath, stubTemplate),
         FS.writeFile(packagePath, await request.context.file.content),
+        FS.writeFile(parserPath, meteorPackage.toJson())
     ]);
     
     request.log.info('Stored debug snippets', {
@@ -134,7 +137,7 @@ export interface PluginSettings {
         packagePath: string;
         
         /**
-         * Path to Meteor's Isopacks store. Used to determine where a package's mainModule is located and whether
+         * Path to Meteor's local Isopacks store. Used to determine where a package's mainModule is located and whether
          * the package has lazy-loaded modules. During production builds this would be pulled from a temporary
          * Meteor build, so that we have solid metadata to use when creating Meteor package stubs.
          *
@@ -143,10 +146,16 @@ export interface PluginSettings {
         isopackPath: string;
         
         /**
-         * Meteor's client-side runtime config.
-         * Used for enabling SSR with Vite.
+         * Path to the current user's Meteor package cache. (e.g. /home/john/.meteor/packages)
+         * This is used to build up a fallback path for isopack manifests.
+         *
+         * Some packages, like `react-meteor-data` do not emit a isopack metadata file within the current project's
+         * .meteor/local directory. So we have to resort to pulling in Isopack metadata from the `meteor-tool` cache.
+         *
+         * @example `react-meteor-data` path
+         * /home/john/.meteor/packages/react-meteor-data/2.7.2/web.browser.json
          */
-        runtimeConfig: MeteorRuntimeConfig;
+        globalMeteorPackagesDir: string;
     }
     
     /**

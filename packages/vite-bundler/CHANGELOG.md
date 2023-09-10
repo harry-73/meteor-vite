@@ -1,5 +1,19 @@
 # vite-bundler
 
+## 1.2.3
+
+### Patch Changes
+
+- 74d9bab: Refresh page if the Vite dev server entrypoint fails to load in the browser
+
+## 1.2.2
+
+### Patch Changes
+
+- d883954: Read Isopack metadata from global Meteor package cache
+
+  Fixes #26
+
 ## 1.2.1
 
 ### Patch Changes

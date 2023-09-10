@@ -126,6 +126,7 @@ class MeteorViteError extends Error {
 }
 
 export const cwd = process.env.METEOR_VITE_CWD ?? guessCwd();
+export const meteorPackagePath = guessMeteorPackagePath();
 export const workerDir = Path.join(cwd, 'node_modules/meteor-vite')
 export const workerPath = Path.join(workerDir, 'dist/bin/worker/index.mjs');
 export function getProjectPackageJson(): ProjectJson {
@@ -149,6 +150,19 @@ function guessCwd () {
         cwd = cwd.substring(0, index)
     }
     return cwd
+}
+function guessMeteorPackagePath() {
+    const [root, ...parts] = process.argv0.split(/[\/\\]/);
+    let packagePath = root || '/';
+    
+    parts.forEach((part) => {
+        if (packagePath.includes('/.meteor/packages/meteor-tool')) {
+            return;
+        }
+        packagePath = Path.posix.join(packagePath, part);
+    });
+    
+    return Path.join(packagePath, '../');
 }
 
 function teardownAll() {

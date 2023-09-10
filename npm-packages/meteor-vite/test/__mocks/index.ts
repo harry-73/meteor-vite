@@ -77,6 +77,34 @@ export const MeteorJs = prepareMock({
         'meteor': ['Meteor', 'global', 'meteorEnv']
     },
     mainModulePath: '',
+});
+
+export const ReactMeteorData = prepareMock({
+    fileName: 'react-meteor-data.js',
+    packageName: 'react-meteor-data',
+    packageScopeExports: {},
+    modules: {
+        'index.js': [
+            { type: 'global-binding', name: 'default', from: 'react', id: 0, },
+            { type: 're-export', name: 'useTracker', from: './useTracker', id: 1, },
+            { type: 're-export', name: 'withTracker', from: './withTracker.tsx', id: 2, },
+            { type: 're-export', name: 'useFind', from: './useFind', id: 3, },
+            { type: 're-export', name: 'useSubscribe', from: './useSubscribe', id: 4, },
+        ],
+        'useFind.ts': [
+            { type: 'export', name: 'useFind' },
+        ],
+        'useSubscribe.ts': [
+            { type: 'export', name: 'useSubscribe' },
+        ],
+        'useTracker.ts': [
+            { type: 'export', name: 'useTracker' },
+        ],
+        'withTracker.tsx': [
+            { type: 'export', name: 'withTracker' },
+        ]
+    },
+    mainModulePath: '',
 })
 
 export const TestLazy = prepareMock({
