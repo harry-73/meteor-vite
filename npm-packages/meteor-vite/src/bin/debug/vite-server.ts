@@ -9,8 +9,12 @@ export default createServer({
   root: meteorRoot,
   plugins: [
     MeteorStubs({
-      meteorPackagePath: Path.join(meteorRoot, '.meteor', 'local', 'build', 'programs', 'web.browser', 'packages'),
-      projectJsonContent: JSON.parse(FS.readFileSync(Path.join(meteorRoot, 'package.json'), 'utf-8')),
+      meteor: {
+        packagePath: Path.join(meteorRoot, '.meteor', 'local', 'build', 'programs', 'web.browser', 'packages'),
+        globalMeteorPackagesDir: Path.join(), // todo
+        isopackPath: Path.join(), // todo
+      },
+      packageJson: JSON.parse(FS.readFileSync(Path.join(meteorRoot, 'package.json'), 'utf-8'))
     }),
   ],
 })
