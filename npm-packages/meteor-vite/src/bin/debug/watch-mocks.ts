@@ -1,12 +1,12 @@
-import { Check, TestLazy, TsModules } from '../../../test/__mocks'
-import MeteorPackage from '../../meteor/package/components/MeteorPackage'
+import { SvelteExampleModulesJs } from '../../../test/__mocks';
+import MeteorPackage from '../../meteor/package/components/MeteorPackage';
 
 /**
  * Parse test module on startup for debugging and development.
  * Works well with ts-node-debug. :)
  */
 (async () => {
-  const mocks = [Check, TsModules, TestLazy]
+  const mocks = [SvelteExampleModulesJs]
 
   for (const { filePath, fileContent } of mocks) {
     console.log(`${'--'.repeat(64)}`)
