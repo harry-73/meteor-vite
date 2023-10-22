@@ -119,6 +119,14 @@ export const TestLazy = prepareMock({
     mainModulePath: ''
 });
 
+export const SvelteExampleModulesJs = prepareMock({
+    packageName: 'modules',
+    fileName: 'svelte_example-modules.js',
+    modules: {},
+    packageScopeExports: {},
+    mainModulePath: ''
+});
+
 export const OstrioCookies = prepareMock({
     packageName: 'ostrio:cookies',
     fileName: 'ostrio_cookies.js',
