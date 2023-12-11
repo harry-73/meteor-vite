@@ -7,19 +7,19 @@
           "type": "patch"
         }
       ],
-      "summary": "Tag Vite chunks to prevent the Meteor compiler plugin from interfering with server module bundling.",
-      "id": "yellow-scissors-travel"
+      "summary": "Use shortened file hashes over .chunk suffix for Vite build output.",
+      "id": "fresh-plums-beg"
     }
   ],
   "releases": [
     {
       "name": "meteor-vite",
       "type": "patch",
-      "oldVersion": "1.7.0",
+      "oldVersion": "1.7.1",
       "changesets": [
-        "yellow-scissors-travel"
+        "fresh-plums-beg"
       ],
-      "newVersion": "1.7.1"
+      "newVersion": "1.7.2"
     }
   ]
 }
