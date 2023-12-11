@@ -1,5 +1,11 @@
 # meteor-vite
 
+## 1.7.2
+
+### Patch Changes
+
+- f35f6c6: Use shortened file hashes over .chunk suffix for Vite build output.
+
 ## 1.7.1
 
 ### Patch Changes
